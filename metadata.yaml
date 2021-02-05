@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-homepage: "https://www.example.com"
-documentation: "https://www.example.com/documentation"
+homepage: "https://github.com/zeotap/zeocollect-gtm-template"
+documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
-  - sha: 5f02a788b90ae804f86b04aa24af8937e567874a
+  - sha: 540768f0cd8a38cb113b906144874be93100a635
+    changeNotes: Add Documentation
+  - sha: 4f821e93717f5b069cecc50f13d110022489d0c0
     changeNotes: Initial Version
