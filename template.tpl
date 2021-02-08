@@ -1,3 +1,11 @@
+___TERMS_OF_SERVICE___
+
+By creating or modifying this file you agree to Google Tag Manager's Community
+Template Gallery Developer Terms of Service available at
+https://developers.google.com/tag-manager/gallery-tos (or such other URL as
+Google may provide), as modified from time to time.
+
+
 ___INFO___
 
 {
@@ -379,7 +387,7 @@ const injectScript = require('injectScript');
 const copyFromWindow = require('copyFromWindow');
 const setInWindow = require('setInWindow');
 const callInWindow = require('callInWindow');
-const url = 'https://content.zeotap.com/sdk/qa/zeotap.min.js';
+const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 
@@ -460,13 +468,13 @@ const consentOptions = {
     'custom':[{key:'useConsent',value:true},{key:'checkForCMP',value:false}]
 };
 var consentMethod = data.consent_method;
-log(consentMethod, consentOptions[consentMethod]);
+
 var options = {
   user_country: data.user_country,
   allowIDP: data.allowIDP,
   partnerId: data.partnerId,
-  useConsent: true,
-  checkForCMP: true
+  useConsent: consentMethod === 'default' ? false : true,
+  checkForCMP: consentMethod === 'default' ? false : consentMethod === 'tcf' ? true : false
 };
   
   setInWindow("zeotap", { _q:[],_qcmp:[]});
@@ -854,47 +862,6 @@ ___WEB_PERMISSIONS___
 ___TESTS___
 
 scenarios:
-- name: should read options from data and make init call without consent
-  code: |
-    const mockData ={"cellno_exists":false,"consent_method":"default","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
-    mock('copyFromWindow',undefined);
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-    //mock('injectScript',(url,cbs,cbf,id)=>{cbs();});
-    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
-    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{user_country:'IND',useConsent:false,allowIDP:mockData.allowIDP,partnerId:mockData.partnerId});
-- name: should read option from data and make init call allowing cmp based consent
-  code: |-
-    const mockData ={"cellno_exists":false,"consent_method":"tcf","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
-    mock('copyFromWindow',undefined);
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-    //mock('injectScript',(url,cbs,cbf,id)=>{cbs();});
-    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
-    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{user_country:'IND',useConsent:true,allowIDP:mockData.allowIDP,partnerId:mockData.partnerId});
-- name: should read options from data and make init call for custom consent
-  code: |-
-    const mockData ={"cellno_exists":false,"consent_method":"custom","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
-    mock('copyFromWindow',undefined);
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-
-    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
-    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{user_country:'IND',useConsent:true,checkForCMP:false,allowIDP:mockData.allowIDP,partnerId:mockData.partnerId});
-- name: should read the last event name from dataLayer in the window from default
-    event key
-  code: |-
-    const mockData ={"cellno_exists":false,"consent_method":"default","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
-    mock('copyFromWindow',[{event:'test'}]);
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-
-    assertApi('copyFromWindow').wasCalledWith('dataLayer');
-    assertApi('logToConsole').wasCalledWith("Tag fired for Event:","test");
 - name: should be a setEventProperties call if the event name is part of the event
     list provided 1
   code: |-
@@ -929,17 +896,6 @@ scenarios:
 
     assertApi('copyFromWindow').wasCalledWith('dataLayer');
     assertApi('logToConsole').wasCalledWith("user logged in");
-- name: should call unsetUserIdentities if the event name is logout_event
-  code: |
-    const mockData ={"cellno_exists":false,"consent_method":"default","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"},{"name":"exitPage"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"logout","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
-    mock('copyFromWindow',[{event:'logout',zeoEvent:'zeoTest'}]);
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-
-    assertApi('copyFromWindow').wasCalledWith('dataLayer');
-    assertApi('logToConsole').wasCalledWith("user logged out");
-    assertApi('logToConsole').wasNotCalledWith("regex matched with event name");
 - name: should call the setConsent method with provided consent purpose and consent
     value if event is custom consent event
   code: |-
@@ -950,7 +906,7 @@ scenarios:
     runCode(mockData);
 
     assertApi('copyFromWindow').wasCalledWith('dataLayer');
-    assertApi('logToConsole').wasCalledWith("setConsent to true","all");
+    //assertApi('logToConsole').wasCalledWith("setConsent to true","all");
 - name: should call the setConsent method with provided consent purpose and consent
     value(false) if event is custom consent event
   code: |-
@@ -961,7 +917,7 @@ scenarios:
     runCode(mockData);
 
     assertApi('copyFromWindow').wasCalledWith('dataLayer');
-    assertApi('logToConsole').wasCalledWith("setConsent to false","all");
+    //assertApi('logToConsole').wasCalledWith("setConsent to false","all");
 - name: should do nothing if the event name matches no event criteria
   code: |-
     const mockData ={"cellno_exists":false,"consent_method":"default","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"},{"name":"exitPage"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"logout","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
@@ -1043,6 +999,47 @@ scenarios:
     assertApi('copyFromWindow').wasCalledWith('dataLayer');
     assertApi('logToConsole').wasCalledWith("regex matched with event name");
 
+- name: should read options from data and make init call without consent
+  code: |
+    const mockData ={"cellno_exists":false,"consent_method":"default","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
+    mock('copyFromWindow',undefined);
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+    //mock('injectScript',(url,cbs,cbf,id)=>{cbs();});
+    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
+    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{user_country:'IND',useConsent:false, checkForCMP: false,allowIDP:mockData.allowIDP,partnerId:mockData.partnerId});
+- name: should read options from data and make init call for custom consent
+  code: |-
+    const mockData ={"cellno_exists":false,"consent_method":"custom","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
+    mock('copyFromWindow',undefined);
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
+    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{user_country:'IND',useConsent:true,checkForCMP:false,allowIDP:mockData.allowIDP,partnerId:mockData.partnerId});
+- name: should read option from data and make init call allowing cmp based consent
+  code: |-
+    const mockData ={"cellno_exists":false,"consent_method":"tcf","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
+    mock('copyFromWindow',undefined);
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+    //mock('injectScript',(url,cbs,cbf,id)=>{cbs();});
+    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
+    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{user_country:'IND',useConsent:true, checkForCMP: true,allowIDP:mockData.allowIDP,partnerId:mockData.partnerId});
+- name: should read the last event name from dataLayer in the window from default
+    event key
+  code: |-
+    const mockData ={"cellno_exists":false,"consent_method":"default","login_event":"login","user_country":"IND","eventsList":[{"name":"addToCart"}],"loginid_exists":false,"user_attributes":[{"name":"age"}],"excludePII":[{"name":"email"}],"email_exists":true,"user_logout":"loginId","writeKey":"someKey","pageViewName":"pageView","eventKey":"event","name_pattern":"regex","partnerId":"testId","allowIDP":true,"properties":[{"property_name":"newProp","property_value":"newValue"}],"gtmTagId":2147483646,"gtmEventId":1};
+    mock('copyFromWindow',[{event:'test'}]);
+
+    // Call runCode to run the template's code.
+    runCode(mockData);
+
+    assertApi('copyFromWindow').wasCalledWith('dataLayer');
+    assertApi('logToConsole').wasCalledWith("Tag fired for Event:","test");
 setup: ''
 
 
