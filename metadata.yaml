@@ -16,6 +16,8 @@ homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
   - sha: HEAD
+    changeNotes: Add Zeotap Icon to template
+  - sha: 6af15d71c9df1de3b5f3ff8e80bfa2f6be1375b3
     changeNotes: Update Template with production SDK Url
   - sha: 540768f0cd8a38cb113b906144874be93100a635
     changeNotes: Add Documentation
