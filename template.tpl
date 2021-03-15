@@ -655,10 +655,6 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://content.zeotap.com/sdk/*"
-              },
-              {
-                "type": 1,
-                "string": "https://s3-eu-west-1.amazonaws.com/aws.zeotap.cdn.com/sdk/*"
               }
             ]
           }
