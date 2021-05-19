@@ -215,7 +215,7 @@ ___TEMPLATE_PARAMETERS___
             "displayName": "Login Event",
             "simpleValueType": true,
             "help": "Specify the dataLayer event fired on user login",
-            "defaultValue": "event"
+            "defaultValue": "login"
           },
           {
             "type": "CHECKBOX",
