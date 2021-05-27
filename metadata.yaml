@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  -sha: 9b269af77a450a4d50e7896e29beacf110b626fb
+    changeNotes: Added logs for debugging
   - sha: 8d8adbe2e6ad76f0f38e2048c1c2580c27c79340
     changeNotes: Rename default loginEvent name
   - sha: 8bfaa11a50911662d033bc5bbf00b4d28c2d4be5
