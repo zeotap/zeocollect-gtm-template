@@ -465,6 +465,7 @@ function isNamePresentIn(array,searchKey){
 }
 
 function removePIIs(listOfPIIs,eventData){
+  log('removing Piis : ', listOfPIIs, eventData);
   var copy = {};
   var piiKey;
   for(let i=0;i<listOfPIIs.length;i++){
@@ -478,6 +479,7 @@ function removePIIs(listOfPIIs,eventData){
       copy[key] = eventData[key];
     }
   }
+  log('returning after removing Piis : ', copy);
   return copy;
 }
 
@@ -522,6 +524,7 @@ function matchStringWithRegex(str,regex){
 }
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 // currently we assume the current state of the datalayer is the eventData for all pageView,normalEvents,userProperties being set
+var dataLayer = copyFromWindow('dataLayer');
 
 if(zeotapCallMethod == undefined) {
 const consentOptions = {
@@ -549,10 +552,13 @@ var options = {
   });
   log('zeotap.callMethod', 'init', data.writeKey,options);
   callInWindow('zeotap.callMethod', 'init', data.writeKey,options);
+  log('pushed init to zeotap queue');
+  log('state of dataLayer pre SDK init ... : ', dataLayer);
 }
-var dataLayer = copyFromWindow('dataLayer');
+
 
 if(!!dataLayer){
+  log('dataLayer exists on window : ', dataLayer);
   var eventData = getEventData(data,dataLayer);
   var eventNameKey = data.eventKey ||  'event';
   // parse the dataLayer and log the event that took place
