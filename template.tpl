@@ -580,6 +580,8 @@ if (!!dataLayer && !!dataLayer.length) {
   log('dl parsed length : ', copyFromWindow('dl_parsed_length'));
 }
 
+data.gtmOnSuccess();
+
 
 ___WEB_PERMISSIONS___
 
