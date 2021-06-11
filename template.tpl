@@ -454,12 +454,7 @@ const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 
 function isNamePresentIn(array, searchKey) {
-  for (let i = 0; i < array.length; i++) {
-    if (array[i].name === searchKey) {
-      return true;
-    }
-  }
-  return false;
+  return array.some((item) => item.name === searchKey);
 }
 
 function removePIIs(listOfPIIs, eventData) {
@@ -481,19 +476,11 @@ function removePIIs(listOfPIIs, eventData) {
   return copy;
 }
 
-function isNullOrEmpty(o) {
-  return o === null || o === undefined;
-}
-function isEmptyString(s) {
-  return isNullOrEmpty(s) || (typeof s === 'string' && s.length <= 0);
-}
 function getUserpropertiesFromData(eventData, propertiesList) {
-  var result = {};
-  for (let p = propertiesList.length - 1; p >= 0; p--) {
-    let prop = propertiesList[p];
-    result[prop.name] = eventData[prop.name];
-  }
-  return result;
+  return propertiesList.reduce((acc, curr) => {
+    acc[curr.name] = eventData[curr.name];
+    return acc; 
+  }, {});
 }
 
 function matchStringWithRegex(str, regex) {
@@ -582,7 +569,7 @@ if (zeotapCallMethod == undefined) {
   injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeoCollect');
 }
 
-if (!!dataLayer) {
+if (!!dataLayer && !!dataLayer.length) {
   log('dataLayer exists on window : ', dataLayer.length, dataLayer);
   let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
   for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
