@@ -85,7 +85,7 @@ ___TEMPLATE_PARAMETERS___
             "type": "NON_EMPTY"
           }
         ],
-        "defaultValue": "tcf"
+        "defaultValue": "default"
       }
     ]
   },
@@ -453,29 +453,31 @@ const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 
-function searchWith(array,searchFn){
-  var k=0;
-  array.forEach((value)=>{
-    if(searchFn(value)){k=1;}
-  });
-  return k==1;
-}
-function isNamePresentIn(array,searchKey){
-  return searchWith(array,(value)=>searchKey == value.name);
+function isNamePresentIn(array, searchKey) {
+  return array.some((item) => item.name === searchKey);
 }
 
-function removePIIs(listOfPIIs,eventData){
+function isEmptyObject(obj) {
+  for (var k in obj) {
+    if (!!obj[k]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function removePIIs(listOfPIIs, eventData) {
   log('removing Piis : ', listOfPIIs, eventData);
   var copy = {};
   var piiKey;
-  for(let i=0;i<listOfPIIs.length;i++){
-    piiKey = listOfPIIs[i].name; 
-    if(!! eventData[piiKey]){
+  for (let i = 0; i < listOfPIIs.length; i++) {
+    piiKey = listOfPIIs[i].name;
+    if (!!eventData[piiKey]) {
       eventData[piiKey] = undefined;
     }
   }
-  for(let key in eventData){
-    if(!!eventData[key]){
+  for (let key in eventData) {
+    if (!!eventData[key]) {
       copy[key] = eventData[key];
     }
   }
@@ -483,143 +485,118 @@ function removePIIs(listOfPIIs,eventData){
   return copy;
 }
 
-function mergePreviousData(dataLayer) {
-    var mergedData = dataLayer[dataLayer.length-1];   
-    // Very simple 'merge' that will not overwrite latest
-    for (let d = dataLayer.length-2; d >= 0; d--) {
-      let current = dataLayer[d];
-      if (current.event === undefined) {
-        for (let i in current){
-          if (mergedData[i] === undefined) {
-            mergedData[i] = current[i];
-          }
-        }
-      } else {
-        break; 
-      }
-    }
-    return mergedData;
-  }
-function isNullOrEmpty(o){
-    return o===null || o===undefined;
-} 
-function isEmptyString(s){
-    return isNullOrEmpty(s) || (typeof s === 'string' && s.length<=0);
+function getUserpropertiesFromData(eventData, propertiesList) {
+  return propertiesList.reduce((acc, curr) => {
+    acc[curr.name] = eventData[curr.name];
+    return acc; 
+  }, {});
 }
-function getUserpropertiesFromData(eventData,propertiesList){
-  var result = {};
-  for(let p = propertiesList.length-1;p>=0;p--){
-    let prop = propertiesList[p];
-    result[prop.name] = eventData[prop.name];
-  }
-  return result;
-}
-function getEventData(_data,_dataLayer){
-    // later this will be more sophisticated based on input config and tagType 
-    var dataLayerMerged = mergePreviousData(_dataLayer);
-    return dataLayerMerged;
-  }
-function matchStringWithRegex(str,regex){
-  return regex.length>0 && str.search(regex)>-1;
+
+function matchStringWithRegex(str, regex) {
+  return regex.length > 0 && str.search(regex) > -1;
 }
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 // currently we assume the current state of the datalayer is the eventData for all pageView,normalEvents,userProperties being set
-var dataLayer = copyFromWindow('dataLayer');
+var dataLayer = copyFromWindow('dataLayer') || [];
 
-if(zeotapCallMethod == undefined) {
-const consentOptions = {
-    'default':[{key:'useConsent',value:false}],
-    'tcf':[{key:'useConsent',value:true}, {key: 'checkForCMP', value:true}],
-    'custom':[{key:'useConsent',value:true},{key:'checkForCMP',value:false}]
-};
-var consentMethod = data.consent_method;
-log(consentMethod, consentOptions[consentMethod]);
-var options = {
-  user_country: data.user_country,
-  allowIDP: data.allowIDP,
-  partnerId: data.partnerId,
-  useConsent: data.consent_method === 'default' ? false : true,
-  checkForCMP: data.consent_method === 'tcf' ? true : false,
-  allowGAClientId: data.allowGAClientId,
-  gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
-  gaUserIdCookieName: data.gaUserIdCookieName,
-  gaUserIdOnlyLoginEvent: data.gaUserIdOnlyLoginEvent
-};
+function callSDKForEvent(eventData) {
+
+  const eventNameKey = data.eventKey || 'event';
+  if (eventData[eventNameKey]) {
+    const regex = data.name_pattern;
+    const eventList = data.eventsList || [];
+    const pageViewEventName = data.pageViewName || 'gtm.js';
+    const eventPropertiesList = data.eventProperties || [];
+    const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
+    const listOfPIIS = data.excludePII || [];
+    const data_wo_pii = removePIIs(listOfPIIS, eventData);
   
-  setInWindow("zeotap", { _q:[],_qcmp:[]});
-  setInWindow('zeotap.callMethod', function() {
-      callInWindow('zeotap._q.push', arguments);
-  });
-  log('zeotap.callMethod', 'init', data.writeKey,options);
-  callInWindow('zeotap.callMethod', 'init', data.writeKey,options);
-  log('pushed init to zeotap queue');
-  log('state of dataLayer pre SDK init ... : ', dataLayer);
-}
+    // parse the dataLayer and log the event that took place
+    log('Tag fired for Event:', eventData[eventNameKey]);
+    // now check the regex to see if it matches with the regex
 
-
-if(!!dataLayer){
-  log('dataLayer exists on window : ', dataLayer);
-  var eventData = getEventData(data,dataLayer);
-  var eventNameKey = data.eventKey ||  'event';
-  // parse the dataLayer and log the event that took place
-  log('Tag fired for Event:',eventData[eventNameKey]);
-  // now check the regex to see if it matches with the regex
-  var regex = data.name_pattern;
-  var eventList = data.eventsList || [];
-  var pageViewEventName=data.pageViewName || 'gtm.js';
-  var eventPropertiesList = data.eventProperties || [];
-  var extraProperties = makeTableMap(eventPropertiesList,'property_name','property_value');
-  var listOfPIIS = data.excludePII || [];
-  var data_wo_pii = removePIIs(listOfPIIS,eventData);
-  if( getType(eventData[eventNameKey]) == 'string' ){
-    
-    if(eventData[eventNameKey] == pageViewEventName){
+    if (eventData[eventNameKey] == pageViewEventName) {
       log('pageview event matched with eventname');
       //assuming setPageProperties( ...args) 
-      callInWindow('zeotap.callMethod', 'setPageProperties',data_wo_pii);
-    }
-    else if(eventData[eventNameKey] == data.login_event){
+      callInWindow('zeotap.callMethod', 'setPageProperties', data_wo_pii);
+    } else if (eventData[eventNameKey] == data.login_event) {
       log('user logged in');
-      var propertiesList = data.user_attributes || [];
-      var userProperties = getUserpropertiesFromData(eventData,propertiesList);
+      const propertiesList = data.user_attributes || [];
+      const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       // call the setUserProperties
-      callInWindow('zeotap.callMethod', 'setUserProperties',userProperties);
+      if (!isEmptyObject(userProperties)) {
+        callInWindow('zeotap.callMethod', 'setUserProperties', userProperties);
+      }
+      
       // collect the pii values
-      var identities = {};
-      if(data.email_exists){
+      const identities = {};
+      if (data.email_exists) {
         identities.email = data.email;
       }
-      if(data.loginid_exists){
+      if (data.loginid_exists) {
         identities.loginid = data.loginid;
       }
-      if(data.cellno_exists){
+      if (data.cellno_exists) {
         identities.cellno_cc = data.cellno;
       }
-      callInWindow('zeotap.callMethod', 'setUserIdentities',identities,data.areIdentitiesHashed);
+      callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
 
-    }
-      
-    else if(eventData[eventNameKey] == data.user_logout){
+    } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
-      var propertiesList = data.user_attributes;
-      var userProperties = getUserpropertiesFromData(eventData,propertiesList);
-      callInWindow('zeotap.callMethod', 'setEventProperties',data.user_logout,{});
-    }
-    
-    else if( matchStringWithRegex(eventData[eventNameKey],regex) || isNamePresentIn(eventList,eventData[eventNameKey])){
+      const propertiesList = data.user_attributes;
+      const userProperties = getUserpropertiesFromData(eventData, propertiesList);
+      callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
+    } else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey])) {
       log('regex matched with event name');
-      log('zeotap.callMethod', 'setEventProperties',eventData[eventNameKey],data_wo_pii,extraProperties);
+      log('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
       //assuming setPageProperties( ...args) 
-      callInWindow('zeotap.callMethod', 'setEventProperties',eventData[eventNameKey],data_wo_pii,extraProperties);
-
+      callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
-    
   }
 }
-  
 
+// main execution
+if (zeotapCallMethod == undefined) {
+  const consentOptions = {
+    'default': [{ key: 'useConsent', value: false }],
+    'tcf': [{ key: 'useConsent', value: true }, { key: 'checkForCMP', value: true }],
+    'custom': [{ key: 'useConsent', value: true }, { key: 'checkForCMP', value: false }]
+  };
+  const consentMethod = data.consent_method;
+  const options = {
+    user_country: data.user_country,
+    allowIDP: data.allowIDP,
+    partnerId: data.partnerId,
+    useConsent: data.consent_method === 'default' ? false : true,
+    checkForCMP: data.consent_method === 'tcf' ? true : false,
+    allowGAClientId: data.allowGAClientId,
+    gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
+    gaUserIdCookieName: data.gaUserIdCookieName,
+    gaUserIdOnlyLoginEvent: data.gaUserIdOnlyLoginEvent,
+    enableLogging: true,
+    logLevel: 'info'
+  };
 
-injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeoCollect');
+  setInWindow("zeotap", { _q: [], _qcmp: [] });
+  setInWindow('zeotap.callMethod', function () {
+    callInWindow('zeotap._q.push', arguments);
+  });
+  callInWindow('zeotap.callMethod', 'init', data.writeKey, options);
+  injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeoCollect');
+}
+
+if (!!dataLayer && !!dataLayer.length) {
+  log('dataLayer exists on window : ', dataLayer.length, dataLayer);
+  let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
+  for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
+    const eventData = dataLayer[i];
+    callSDKForEvent(eventData);
+  }
+  setInWindow('dl_parsed_length', dataLayer.length, true);
+  log('dl parsed length : ', copyFromWindow('dl_parsed_length'));
+}
+
+data.gtmOnSuccess();
 
 
 ___WEB_PERMISSIONS___
@@ -903,6 +880,45 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 1,
                     "string": "dataLayer"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "dl_parsed_length"
                   },
                   {
                     "type": 8,
