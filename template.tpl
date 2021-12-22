@@ -13,7 +13,7 @@ ___INFO___
   "id": "cvt_temp_public_id",
   "version": 1,
   "securityGroups": [],
-  "displayName": "Zeotap Collect Tag Template",
+  "displayName": "Zeotap Collect Tag Template (DEV)",
   "brand": {
     "id": "brand_dummy",
     "displayName": "",
@@ -219,107 +219,424 @@ ___TEMPLATE_PARAMETERS___
           },
           {
             "type": "CHECKBOX",
-            "name": "email_exists",
-            "checkboxText": "Capture email",
-            "simpleValueType": true,
-            "enablingConditions": [
-              {
-                "paramName": "login_event",
-                "paramValue": "",
-                "type": "PRESENT"
-              }
-            ]
-          },
-          {
-            "type": "SELECT",
-            "name": "email",
-            "displayName": "Email variable",
-            "macrosInSelect": true,
-            "selectItems": [],
-            "simpleValueType": true,
-            "notSetText": "",
-            "valueValidators": [
-              {
-                "type": "NON_EMPTY"
-              }
-            ],
-            "enablingConditions": [
-              {
-                "paramName": "email_exists",
-                "paramValue": true,
-                "type": "EQUALS"
-              }
-            ]
-          },
-          {
-            "type": "CHECKBOX",
-            "name": "cellno_exists",
-            "checkboxText": "Capture cellphone number",
-            "simpleValueType": true,
-            "enablingConditions": [
-              {
-                "paramName": "login_event",
-                "paramValue": "",
-                "type": "PRESENT"
-              }
-            ]
-          },
-          {
-            "type": "SELECT",
-            "name": "cellno",
-            "displayName": "Cell number variable",
-            "macrosInSelect": true,
-            "selectItems": [],
-            "simpleValueType": true,
-            "notSetText": "",
-            "enablingConditions": [
-              {
-                "paramName": "cellno_exists",
-                "paramValue": true,
-                "type": "EQUALS"
-              }
-            ]
-          },
-          {
-            "type": "CHECKBOX",
-            "name": "loginid_exists",
-            "checkboxText": "Capture Loginid",
-            "simpleValueType": true,
-            "enablingConditions": [
-              {
-                "paramName": "login_event",
-                "paramValue": "",
-                "type": "PRESENT"
-              }
-            ]
-          },
-          {
-            "type": "SELECT",
-            "name": "loginid",
-            "displayName": "Login variable",
-            "macrosInSelect": true,
-            "selectItems": [],
-            "simpleValueType": true,
-            "notSetText": "",
-            "enablingConditions": [
-              {
-                "paramName": "loginid_exists",
-                "paramValue": true,
-                "type": "EQUALS"
-              }
-            ]
-          },
-          {
-            "type": "CHECKBOX",
             "name": "areIdentitiesHashed",
             "checkboxText": "Are your identities hashed ?",
             "simpleValueType": true,
             "defaultValue": false,
             "enablingConditions": [
               {
-                "paramName": "loginid_exists",
+                "paramName": "login_event",
                 "paramValue": "",
                 "type": "PRESENT"
+              }
+            ]
+          },
+          {
+            "type": "CHECKBOX",
+            "name": "hashIdentities",
+            "checkboxText": "Is hashing of raw identities required?",
+            "simpleValueType": true,
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": false,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "raw_email_group",
+            "displayName": "Raw Email",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "email_exists",
+                "checkboxText": "Capture Email",
+                "simpleValueType": true
+              },
+              {
+                "type": "SELECT",
+                "name": "email",
+                "displayName": "Email Variable",
+                "macrosInSelect": true,
+                "selectItems": [],
+                "simpleValueType": true,
+                "enablingConditions": [
+                  {
+                    "paramName": "email_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "NON_EMPTY"
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": false,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "raw_cellno_group",
+            "displayName": "Raw Cellphone with country code",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "cellno_exists",
+                "checkboxText": "Capture cellphone number with country code",
+                "simpleValueType": true
+              },
+              {
+                "type": "SELECT",
+                "name": "cellno",
+                "displayName": "Cell number variable",
+                "macrosInSelect": true,
+                "selectItems": [],
+                "simpleValueType": true,
+                "enablingConditions": [
+                  {
+                    "paramName": "cellno_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "NON_EMPTY"
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": false,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "raw_loginid_group",
+            "displayName": "Raw Loginid",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "loginid_exists",
+                "checkboxText": "Capture Loginid",
+                "simpleValueType": true
+              },
+              {
+                "type": "SELECT",
+                "name": "loginid",
+                "displayName": "Loginid Variable",
+                "macrosInSelect": true,
+                "selectItems": [],
+                "simpleValueType": true,
+                "enablingConditions": [
+                  {
+                    "paramName": "loginid_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "NON_EMPTY"
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": false,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "hashed_email_group",
+            "displayName": "Hashed Email",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "hashed_email_exists",
+                "checkboxText": "Capture hashed email",
+                "simpleValueType": true
+              },
+              {
+                "type": "SIMPLE_TABLE",
+                "name": "hashed_email_table",
+                "displayName": "",
+                "simpleTableColumns": [
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hash Algorithm",
+                    "name": "hashAlgorithm",
+                    "type": "SELECT",
+                    "selectItems": [
+                      {
+                        "value": "sha256_lowercase",
+                        "displayValue": "sha256_lowercase"
+                      },
+                      {
+                        "value": "sha256_uppercase",
+                        "displayValue": "sha256_uppercase"
+                      },
+                      {
+                        "value": "md5_lowercase",
+                        "displayValue": "md5_lowercase"
+                      },
+                      {
+                        "value": "md5_uppercase",
+                        "displayValue": "md5_uppercase"
+                      },
+                      {
+                        "value": "sha1_lowercase",
+                        "displayValue": "sha1_lowercase"
+                      },
+                      {
+                        "value": "sha1_uppercase",
+                        "displayValue": "sha1_uppercase"
+                      }
+                    ],
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  },
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hashed Email Variable",
+                    "name": "hashedEmail",
+                    "type": "SELECT",
+                    "macrosInSelect": true,
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  }
+                ],
+                "enablingConditions": [
+                  {
+                    "paramName": "hashed_email_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "TABLE_ROW_COUNT",
+                    "args": [
+                      1,
+                      6
+                    ]
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": true,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "hashed_cellno_group",
+            "displayName": "Hashed Cellphone with country code",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "hashed_cellno_exists",
+                "checkboxText": "Capture hashed cellphone number with country code",
+                "simpleValueType": true
+              },
+              {
+                "type": "SIMPLE_TABLE",
+                "name": "hashed_cellno_table",
+                "displayName": "",
+                "simpleTableColumns": [
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hash Algorithm",
+                    "name": "hashAlgorithm",
+                    "type": "SELECT",
+                    "selectItems": [
+                      {
+                        "value": "sha256",
+                        "displayValue": "sha256"
+                      },
+                      {
+                        "value": "md5",
+                        "displayValue": "md5"
+                      },
+                      {
+                        "value": "sha1",
+                        "displayValue": "sha1"
+                      }
+                    ],
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  },
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hashed Cellphone Number Variable",
+                    "name": "hashedCellno",
+                    "type": "SELECT",
+                    "macrosInSelect": true,
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  }
+                ],
+                "enablingConditions": [
+                  {
+                    "paramName": "hashed_cellno_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "TABLE_ROW_COUNT",
+                    "args": [
+                      1,
+                      3
+                    ]
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": true,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "hashed_loginid_group",
+            "displayName": "Hashed Loginid",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "hashed_loginid_exists",
+                "checkboxText": "Capture hashed Loginid",
+                "simpleValueType": true
+              },
+              {
+                "type": "SIMPLE_TABLE",
+                "name": "hashed_loginid_table",
+                "displayName": "",
+                "simpleTableColumns": [
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hash Algorithm",
+                    "name": "hashAlgorithm",
+                    "type": "SELECT",
+                    "selectItems": [
+                      {
+                        "value": "sha256_lowercase",
+                        "displayValue": "sha256_lowercase"
+                      },
+                      {
+                        "value": "sha256_uppercase",
+                        "displayValue": "sha256_uppercase"
+                      },
+                      {
+                        "value": "md5_lowercase",
+                        "displayValue": "md5_lowercase"
+                      },
+                      {
+                        "value": "md5_uppercase",
+                        "displayValue": "md5_uppercase"
+                      },
+                      {
+                        "value": "sha1_lowercase",
+                        "displayValue": "sha1_lowercase"
+                      },
+                      {
+                        "value": "sha1_uppercase",
+                        "displayValue": "sha1_uppercase"
+                      }
+                    ],
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  },
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hashed Loginid Variable",
+                    "name": "hashedLoginid",
+                    "type": "SELECT",
+                    "macrosInSelect": true,
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  }
+                ],
+                "enablingConditions": [
+                  {
+                    "paramName": "hashed_loginid_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "TABLE_ROW_COUNT",
+                    "args": [
+                      1,
+                      6
+                    ]
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": true,
+                "type": "EQUALS"
               }
             ]
           }
@@ -467,7 +784,6 @@ function isEmptyObject(obj) {
 }
 
 function removePIIs(listOfPIIs, eventData) {
-  log('removing Piis : ', listOfPIIs, eventData);
   var copy = {};
   var piiKey;
   for (let i = 0; i < listOfPIIs.length; i++) {
@@ -481,7 +797,6 @@ function removePIIs(listOfPIIs, eventData) {
       copy[key] = eventData[key];
     }
   }
-  log('returning after removing Piis : ', copy);
   return copy;
 }
 
@@ -496,7 +811,7 @@ function matchStringWithRegex(str, regex) {
   return regex.length > 0 && str.search(regex) > -1;
 }
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
-// currently we assume the current state of the datalayer is the eventData for all pageView,normalEvents,userProperties being set
+
 var dataLayer = copyFromWindow('dataLayer') || [];
 
 function callSDKForEvent(eventData) {
@@ -512,11 +827,11 @@ function callSDKForEvent(eventData) {
     const data_wo_pii = removePIIs(listOfPIIS, eventData);
   
     // parse the dataLayer and log the event that took place
-    log('Tag fired for Event:', eventData[eventNameKey]);
+    log('Tag fired for Event:', eventData[eventNameKey], eventData);
     // now check the regex to see if it matches with the regex
 
     if (eventData[eventNameKey] == pageViewEventName) {
-      log('pageview event matched with eventname');
+      log('pageview event');
       //assuming setPageProperties( ...args) 
       callInWindow('zeotap.callMethod', 'setPageProperties', data_wo_pii);
     } else if (eventData[eventNameKey] == data.login_event) {
@@ -530,15 +845,37 @@ function callSDKForEvent(eventData) {
       
       // collect the pii values
       const identities = {};
-      if (data.email_exists) {
-        identities.email = data.email;
+      if (data.areIdentitiesHashed) {
+        if (data.hashed_email_exists) {
+          for (let i=0;i< data.hashed_email_table.length;i++) {
+            const hashKey = 'email_' + data.hashed_email_table[i].hashAlgorithm;
+            identities[hashKey] = data.hashed_email_table[i].hashedEmail;
+          }
+        }
+        if (data.hashed_cellno_exists) {
+          for (let i=0;i< data.hashed_cellno_table.length;i++) {
+            const hashKey = 'cellno_with_country_code_' + data.hashed_cellno_table[i].hashAlgorithm;
+            identities[hashKey] = data.hashed_cellno_table[i].hashedCellno;
+          }
+        }
+        if (data.hashed_loginid_exists) {
+          for (let i=0;i< data.hashed_loginid_table.length;i++) {
+            const hashKey = 'loginid_' + data.hashed_loginid_table[i].hashAlgorithm;
+            identities[hashKey] = data.hashed_loginid_table[i].hashedLoginid;
+          }
+        }
+      } else {
+        if (data.email_exists) {
+          identities.email = data.email;
+        }
+        if (data.loginid_exists) {
+          identities.loginid = data.loginid;
+        }
+        if (data.cellno_exists) {
+          identities.cellno_cc = data.cellno;
+        }
       }
-      if (data.loginid_exists) {
-        identities.loginid = data.loginid;
-      }
-      if (data.cellno_exists) {
-        identities.cellno_cc = data.cellno;
-      }
+      
       callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
 
     } else if (eventData[eventNameKey] == data.user_logout) {
@@ -548,8 +885,6 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
     } else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey])) {
       log('regex matched with event name');
-      log('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
-      //assuming setPageProperties( ...args) 
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
   }
@@ -573,9 +908,11 @@ if (zeotapCallMethod == undefined) {
     gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
     gaUserIdCookieName: data.gaUserIdCookieName,
     gaUserIdOnlyLoginEvent: data.gaUserIdOnlyLoginEvent,
-    enableLogging: true,
-    logLevel: 'info'
+    enableLogging: false,
+    areIdentitiesHashed: data.areIdentitiesHashed,
+    hashIdentities: data.hashIdentities
   };
+
 
   setInWindow("zeotap", { _q: [], _qcmp: [] });
   setInWindow('zeotap.callMethod', function () {
@@ -586,14 +923,12 @@ if (zeotapCallMethod == undefined) {
 }
 
 if (!!dataLayer && !!dataLayer.length) {
-  log('dataLayer exists on window : ', dataLayer.length, dataLayer);
   let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
   for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
     const eventData = dataLayer[i];
     callSDKForEvent(eventData);
   }
   setInWindow('dl_parsed_length', dataLayer.length, true);
-  log('dl parsed length : ', copyFromWindow('dl_parsed_length'));
 }
 
 data.gtmOnSuccess();
