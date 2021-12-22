@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 40418b7e2579eb378c788a6950710872068a53b2
+    changeNotes: Add form fields to support ingestion of hashed user identities
   - sha: 629c91db023aa0becdfe65331b4c80cdcd35ff8a
     changeNotes: Memorize parsed dataLayer to boost performance
   - sha: 03043278f63e66f42357036393c4d1961f4e878a
