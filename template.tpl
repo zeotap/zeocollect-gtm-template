@@ -77,6 +77,10 @@ ___TEMPLATE_PARAMETERS___
           {
             "value": "tcf",
             "displayValue": "Check TCF CMP"
+          },
+          {
+            "value": "custom",
+            "displayValue": "Custom Consent"
           }
         ],
         "simpleValueType": true,
@@ -86,6 +90,53 @@ ___TEMPLATE_PARAMETERS___
           }
         ],
         "defaultValue": "default"
+      },
+      {
+        "type": "GROUP",
+        "name": "customConsentConfig",
+        "displayName": "SDK Consent Signals",
+        "groupStyle": "NO_ZIPPY",
+        "subParams": [
+          {
+            "type": "TEXT",
+            "name": "customConsentMethod",
+            "displayName": "Event name indicating that consent is set",
+            "simpleValueType": true,
+            "valueValidators": [
+              {
+                "type": "NON_EMPTY"
+              }
+            ]
+          },
+          {
+            "type": "TEXT",
+            "name": "track",
+            "displayName": "Track",
+            "simpleValueType": true,
+            "help": "Consent signal that allows SDK to capture events"
+          },
+          {
+            "type": "TEXT",
+            "name": "identify",
+            "displayName": "Identify",
+            "simpleValueType": true,
+            "help": "Consent signal that allows SDK to identify a user"
+          },
+          {
+            "type": "TEXT",
+            "name": "cookieSync",
+            "displayName": "Cookie Sync",
+            "simpleValueType": true,
+            "help": "Consent signal that allows SDK to cookie sync with channel partners"
+          }
+        ],
+        "enablingConditions": [
+          {
+            "paramName": "consent_method",
+            "paramValue": "custom",
+            "type": "EQUALS"
+          }
+        ]
       }
     ]
   },
@@ -316,6 +367,60 @@ ___TEMPLATE_PARAMETERS___
                     "type": "NON_EMPTY"
                   }
                 ]
+              },
+              {
+                "type": "TEXT",
+                "name": "country_code",
+                "displayName": "Country Code without special characters",
+                "simpleValueType": true,
+                "enablingConditions": [
+                  {
+                    "paramName": "cellno_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": false,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "raw_cellno_without_cc_group",
+            "displayName": "Raw Cellphone without country code",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "cellno_without_cc_exists",
+                "checkboxText": "Capture cellphone number without country code",
+                "simpleValueType": true
+              },
+              {
+                "type": "SELECT",
+                "name": "cellno_without_cc",
+                "displayName": "Cell number variable",
+                "macrosInSelect": true,
+                "selectItems": [],
+                "simpleValueType": true,
+                "enablingConditions": [
+                  {
+                    "paramName": "cellno_without_cc_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "NON_EMPTY"
+                  }
+                ]
               }
             ],
             "enablingConditions": [
@@ -522,6 +627,172 @@ ___TEMPLATE_PARAMETERS___
                 "enablingConditions": [
                   {
                     "paramName": "hashed_cellno_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "TABLE_ROW_COUNT",
+                    "args": [
+                      1,
+                      3
+                    ]
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": true,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "hashed_cellno_e164_group",
+            "displayName": "Hashed Cellphone in E164 format",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "hashed_cellno_e164_exists",
+                "checkboxText": "Capture hashed cellphone number in E164 format",
+                "simpleValueType": true
+              },
+              {
+                "type": "SIMPLE_TABLE",
+                "name": "hashed_cellno_e164_table",
+                "displayName": "",
+                "simpleTableColumns": [
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hash Algorithm",
+                    "name": "hashAlgorithm",
+                    "type": "SELECT",
+                    "selectItems": [
+                      {
+                        "value": "sha256",
+                        "displayValue": "sha256"
+                      },
+                      {
+                        "value": "md5",
+                        "displayValue": "md5"
+                      },
+                      {
+                        "value": "sha1",
+                        "displayValue": "sha1"
+                      }
+                    ],
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  },
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hashed Cellphone Number Variable",
+                    "name": "hashedCellno",
+                    "type": "SELECT",
+                    "macrosInSelect": true,
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  }
+                ],
+                "enablingConditions": [
+                  {
+                    "paramName": "hashed_cellno_e164_exists",
+                    "paramValue": true,
+                    "type": "EQUALS"
+                  }
+                ],
+                "valueValidators": [
+                  {
+                    "type": "TABLE_ROW_COUNT",
+                    "args": [
+                      1,
+                      3
+                    ]
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "areIdentitiesHashed",
+                "paramValue": true,
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "hashed_cellno_without_cc_group",
+            "displayName": "Hashed Cellphone without country code",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "hashed_cellno_without_cc_exists",
+                "checkboxText": "Capture hashed cellphone number without country code",
+                "simpleValueType": true
+              },
+              {
+                "type": "SIMPLE_TABLE",
+                "name": "hashed_cellno_without_cc_table",
+                "displayName": "",
+                "simpleTableColumns": [
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hash Algorithm",
+                    "name": "hashAlgorithm",
+                    "type": "SELECT",
+                    "selectItems": [
+                      {
+                        "value": "sha256",
+                        "displayValue": "sha256"
+                      },
+                      {
+                        "value": "md5",
+                        "displayValue": "md5"
+                      },
+                      {
+                        "value": "sha1",
+                        "displayValue": "sha1"
+                      }
+                    ],
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  },
+                  {
+                    "defaultValue": "",
+                    "displayName": "Hashed Cellphone Number Variable",
+                    "name": "hashedCellno",
+                    "type": "SELECT",
+                    "macrosInSelect": true,
+                    "isUnique": true,
+                    "valueValidators": [
+                      {
+                        "type": "NON_EMPTY"
+                      }
+                    ]
+                  }
+                ],
+                "enablingConditions": [
+                  {
+                    "paramName": "hashed_cellno_without_cc_exists",
                     "paramValue": true,
                     "type": "EQUALS"
                   }
@@ -858,6 +1129,18 @@ function callSDKForEvent(eventData) {
             identities[hashKey] = data.hashed_cellno_table[i].hashedCellno;
           }
         }
+        if (data.hashed_cellno_without_cc_exists) {
+          for (let i=0;i< data.hashed_cellno_without_cc_table.length;i++) {
+            const hashKey = 'cellno_without_country_code_' + data.hashed_cellno_without_cc_table[i].hashAlgorithm;
+            identities[hashKey] = data.hashed_cellno_without_cc_table[i].hashedCellno;
+          }
+        }
+         if (data.hashed_cellno_e164_exists) {
+          for (let i=0;i< data.hashed_cellno_e164_table.length;i++) {
+            const hashKey = 'cellno_e164_' + data.hashed_cellno_e164_table[i].hashAlgorithm;
+            identities[hashKey] = data.hashed_cellno_e164_table[i].hashedCellno;
+          }
+        }
         if (data.hashed_loginid_exists) {
           for (let i=0;i< data.hashed_loginid_table.length;i++) {
             const hashKey = 'loginid_' + data.hashed_loginid_table[i].hashAlgorithm;
@@ -871,13 +1154,32 @@ function callSDKForEvent(eventData) {
         if (data.loginid_exists) {
           identities.loginid = data.loginid;
         }
+        if (data.cellno_without_cc_exists) {
+          identities.cellno = data.cellno;
+        }
         if (data.cellno_exists) {
-          identities.cellno_cc = data.cellno;
+          if (data.country_code && data.cellno) {
+            identities.cellno = data.country_code + " " + data.cellno;
+          } else {
+            identities.cellno_cc = data.cellno;
+          }
         }
       }
       
+      log('setUserIdentities getting invoked with ... : ', identities);
+      
       callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
 
+    } else if (eventData[eventNameKey] == data.customConsentMethod) {
+        callInWindow(
+          'zeotap.callMethod',
+          'setConsent',
+          { 
+            track: data.track,
+            identify: data.identify,
+            cookieSync: data.cookieSync
+          }
+        );
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
       const propertiesList = data.user_attributes;
