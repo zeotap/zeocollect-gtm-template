@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 3b3757ac53c657d459f60f3496431d2bff7b5ea5
+    changeNotes: Added custom consent option for consent resolution
   - sha: b6c4b83ab0affe769840cb66e49be641f3f6ed08
     changeNotes: Add form fields to support ingestion of hashed user identities
   - sha: 629c91db023aa0becdfe65331b4c80cdcd35ff8a
