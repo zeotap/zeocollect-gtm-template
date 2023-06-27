@@ -76,7 +76,7 @@ ___TEMPLATE_PARAMETERS___
           },
           {
             "value": "tcf",
-            "displayValue": "Check TCF CMP"
+            "displayValue": "Check TCFv2 CMP (GDPR)"
           },
           {
             "value": "custom",
@@ -134,6 +134,89 @@ ___TEMPLATE_PARAMETERS___
           {
             "paramName": "consent_method",
             "paramValue": "custom",
+            "type": "EQUALS"
+          }
+        ]
+      },
+      {
+        "type": "GROUP",
+        "name": "gdprConfig",
+        "displayName": "Configuration for GDPR",
+        "groupStyle": "NO_ZIPPY",
+        "subParams": [
+          {
+            "type": "GROUP",
+            "name": "purposesForTrack",
+            "displayName": "Purposes for tracking of events",
+            "groupStyle": "NO_ZIPPY",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose1",
+                "checkboxText": "Store and/or access information on a device",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose2",
+                "checkboxText": "Select basic ads",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose3",
+                "checkboxText": "Create a personalised ad profile",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose4",
+                "checkboxText": "Select personalised ads",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose5",
+                "checkboxText": "Create a personalised content profile",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose6",
+                "checkboxText": "Select personalised content",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose7",
+                "checkboxText": "Measure ad performance",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose8",
+                "checkboxText": "Measure content performance",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose9",
+                "checkboxText": "Apply market research to generate audience insights",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "trackPurpose10",
+                "checkboxText": "Develop and improve products",
+                "simpleValueType": true
+              }
+            ]
+          }
+        ],
+        "enablingConditions": [
+          {
+            "paramName": "consent_method",
+            "paramValue": "tcf",
             "type": "EQUALS"
           }
         ]
@@ -1200,12 +1283,23 @@ if (zeotapCallMethod == undefined) {
     'custom': [{ key: 'useConsent', value: true }, { key: 'checkForCMP', value: false }]
   };
   const consentMethod = data.consent_method;
+  let gdprPurposeforTrack = [];
+  if(consentMethod === 'tcf') {
+  for(let i = 1; i <= 10; i++) {
+    const prop = 'trackPurpose'+i;
+     if(data[prop]) {
+       gdprPurposeforTrack.push(i);
+     }
+  }
+  }
+
   const options = {
     user_country: data.user_country,
     allowIDP: data.allowIDP,
     partnerId: data.partnerId,
     useConsent: data.consent_method === 'default' ? false : true,
     checkForCMP: data.consent_method === 'tcf' ? true : false,
+    purposesForTrack: gdprPurposeforTrack,
     allowGAClientId: data.allowGAClientId,
     gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
     gaUserIdCookieName: data.gaUserIdCookieName,
