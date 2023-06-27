@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 49a2ed5cdf8de9f31907860fc534aa7730f14baf
+    changeNotes: Added TCFv2 GDPR options for consent resolution
   - sha: 3b3757ac53c657d459f60f3496431d2bff7b5ea5
     changeNotes: Added custom consent option for consent resolution
   - sha: b6c4b83ab0affe769840cb66e49be641f3f6ed08
