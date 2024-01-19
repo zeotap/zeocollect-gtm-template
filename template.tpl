@@ -1171,7 +1171,7 @@ var dataLayer = copyFromWindow('dataLayer') || [];
 function callSDKForEvent(eventData) {
 
   const eventNameKey = data.eventKey || 'event';
-  if (eventData[eventNameKey]) {
+  if (eventData && eventData[eventNameKey]) {
     const regex = data.name_pattern;
     const eventList = data.eventsList || [];
     const pageViewEventName = data.pageViewName || 'gtm.js';
