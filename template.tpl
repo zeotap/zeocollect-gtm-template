@@ -145,6 +145,14 @@ ___TEMPLATE_PARAMETERS___
         "groupStyle": "NO_ZIPPY",
         "subParams": [
           {
+            "type": "CHECKBOX",
+            "name": "shouldCheckZeotapVendorConsent",
+            "checkboxText": "Zeotap Vendor Consent should be honored",
+            "simpleValueType": true,
+            "displayName": "Zeotap Vendor Consent",
+            "help": "Select this if SDK should check for Zeotap vendor consent(Vendor id: 301)"
+          },
+          {
             "type": "GROUP",
             "name": "purposesForTrack",
             "displayName": "Purposes for tracking of events",
@@ -207,6 +215,74 @@ ___TEMPLATE_PARAMETERS___
               {
                 "type": "CHECKBOX",
                 "name": "trackPurpose10",
+                "checkboxText": "Develop and improve products",
+                "simpleValueType": true
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "purposesForCookieSync",
+            "displayName": "Purposes for cookieSync",
+            "groupStyle": "NO_ZIPPY",
+            "subParams": [
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose1",
+                "checkboxText": "Store and/or access information on a device",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose2",
+                "checkboxText": "Select basic ads",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose3",
+                "checkboxText": "Create a personalised ad profile",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose4",
+                "checkboxText": "Select personalised ads",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose5",
+                "checkboxText": "Create a personalised content profile",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose6",
+                "checkboxText": "Select personalised content",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose7",
+                "checkboxText": "Measure ad performance",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose8",
+                "checkboxText": "Measure content performance",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose9",
+                "checkboxText": "Apply market research to generate audience insights",
+                "simpleValueType": true
+              },
+              {
+                "type": "CHECKBOX",
+                "name": "cookieSyncPurpose10",
                 "checkboxText": "Develop and improve products",
                 "simpleValueType": true
               }
@@ -1124,6 +1200,13 @@ const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 
+function mergeUserPropsAndIdentities(userProperties, identities) {
+return [userProperties, identities].reduce((final, current) => { 
+  for (var key in current) { final[key] = current[key]; } 
+  return final;
+  }, {});
+}
+
 function isNamePresentIn(array, searchKey) {
   return array.some((item) => item.name === searchKey);
 }
@@ -1155,6 +1238,7 @@ function removePIIs(listOfPIIs, eventData) {
 }
 
 function getUserpropertiesFromData(eventData, propertiesList) {
+  log('userprop',eventData, propertiesList);
   return propertiesList.reduce((acc, curr) => {
     acc[curr.name] = eventData[curr.name];
     return acc; 
@@ -1171,7 +1255,9 @@ var dataLayer = copyFromWindow('dataLayer') || [];
 function callSDKForEvent(eventData) {
 
   const eventNameKey = data.eventKey || 'event';
+  log('eventData and eventNameKey : ', eventData, eventNameKey);
   if (eventData && eventData[eventNameKey]) {
+    log('key exists in event payload');
     const regex = data.name_pattern;
     const eventList = data.eventsList || [];
     const pageViewEventName = data.pageViewName || 'gtm.js';
@@ -1248,10 +1334,11 @@ function callSDKForEvent(eventData) {
           }
         }
       }
+      var mergedIdentities = mergeUserPropsAndIdentities(userProperties,identities);
+      log('identities are ...', identities);
+      log('setUserIdentities getting invoked with identities merged with user props... : ', mergedIdentities);
       
-      log('setUserIdentities getting invoked with ... : ', identities);
-      
-      callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
+      callInWindow('zeotap.callMethod', 'setUserIdentities', mergedIdentities, data.areIdentitiesHashed);
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
         callInWindow(
@@ -1273,6 +1360,7 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
   }
+  log('key does not exist in event payload =====================');
 }
 
 // main execution
@@ -1284,12 +1372,17 @@ if (zeotapCallMethod == undefined) {
   };
   const consentMethod = data.consent_method;
   let gdprPurposeforTrack = [];
+  let gdprPurposeforCookieSync = [];
   if(consentMethod === 'tcf') {
   for(let i = 1; i <= 10; i++) {
     const prop = 'trackPurpose'+i;
      if(data[prop]) {
        gdprPurposeforTrack.push(i);
      }
+    const csprop = 'cookieSyncPurpose'+i;
+    if(data[csprop]) {
+      gdprPurposeforCookieSync.push(i);
+    }
   }
   }
 
@@ -1300,6 +1393,8 @@ if (zeotapCallMethod == undefined) {
     useConsent: data.consent_method === 'default' ? false : true,
     checkForCMP: data.consent_method === 'tcf' ? true : false,
     purposesForTrack: gdprPurposeforTrack,
+    purposesForCookieSync: gdprPurposeforCookieSync,
+    shouldCheckZeotapVendorConsent: data.shouldCheckZeotapVendorConsent,
     allowGAClientId: data.allowGAClientId,
     gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
     gaUserIdCookieName: data.gaUserIdCookieName,
@@ -1322,6 +1417,7 @@ if (!!dataLayer && !!dataLayer.length) {
   let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
   for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
     const eventData = dataLayer[i];
+    log('Initiating call to SDK for : ', eventData, i);
     callSDKForEvent(eventData);
   }
   setInWindow('dl_parsed_length', dataLayer.length, true);
