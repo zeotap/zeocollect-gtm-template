@@ -1281,7 +1281,7 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
   }
-  log('key does not exist in event payload =====================');
+
 }
 
 // main execution
