@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: a36cd6e92ce9548992f806b9195864245460a8ee 
+    changeNotes: Added persistence of user properties in subsequent calls
   - sha: ced62b0ff4de96bbc18445929a1a37e39454a9cf
     changeNotes: Added Fix for Datalayer elements causing tag exception
   - sha: 49a2ed5cdf8de9f31907860fc534aa7730f14baf
