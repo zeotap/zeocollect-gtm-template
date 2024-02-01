@@ -1124,6 +1124,13 @@ const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 
+function mergeUserPropsAndIdentities(userProperties, identities) {
+return [userProperties, identities].reduce((final, current) => { 
+  for (var key in current) { final[key] = current[key]; } 
+  return final;
+  }, {});
+}
+
 function isNamePresentIn(array, searchKey) {
   return array.some((item) => item.name === searchKey);
 }
@@ -1248,10 +1255,11 @@ function callSDKForEvent(eventData) {
           }
         }
       }
+      var mergedIdentities = mergeUserPropsAndIdentities(userProperties,identities);
+      log('identities are ...', identities);
+      log('setUserIdentities getting invoked with identities merged with user props... : ', mergedIdentities);
       
-      log('setUserIdentities getting invoked with ... : ', identities);
-      
-      callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
+      callInWindow('zeotap.callMethod', 'setUserIdentities', mergedIdentities, data.areIdentitiesHashed);
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
         callInWindow(
@@ -1273,6 +1281,7 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
   }
+
 }
 
 // main execution
@@ -1322,6 +1331,7 @@ if (!!dataLayer && !!dataLayer.length) {
   let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
   for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
     const eventData = dataLayer[i];
+    log('Initiating call to SDK for : ', eventData, i);
     callSDKForEvent(eventData);
   }
   setInWindow('dl_parsed_length', dataLayer.length, true);
