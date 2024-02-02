@@ -1212,6 +1212,10 @@ function callSDKForEvent(eventData) {
     log('Tag fired for Event:', eventData[eventNameKey], eventData);
     // now check the regex to see if it matches with the regex
 
+    if(matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
+      return;
+    }
+
     if (eventData[eventNameKey] == pageViewEventName) {
       log('pageview event');
       //assuming setPageProperties( ...args) 
@@ -1297,8 +1301,7 @@ function callSDKForEvent(eventData) {
       const propertiesList = data.user_attributes;
       const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
-    } else if ((matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey]))
-             && !matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
+    } else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey])) {
       log('regex matched with event name');
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
