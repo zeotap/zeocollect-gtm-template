@@ -1207,14 +1207,16 @@ function callSDKForEvent(eventData) {
     const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
     const listOfPIIS = data.excludePII || [];
     const data_wo_pii = removePIIs(listOfPIIS, eventData);
-  
+
+    if(matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
+      log('Could not Fire Tag Event as event regex matched exclusion regex');
+      return;
+    }
+
     // parse the dataLayer and log the event that took place
     log('Tag fired for Event:', eventData[eventNameKey], eventData);
     // now check the regex to see if it matches with the regex
 
-    if(matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
-      return;
-    }
 
     if (eventData[eventNameKey] == pageViewEventName) {
       log('pageview event');
