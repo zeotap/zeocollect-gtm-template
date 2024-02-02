@@ -278,6 +278,21 @@ ___TEMPLATE_PARAMETERS___
             "help": "Event names that we want to track apart from the regex provided."
           },
           {
+            "type": "SIMPLE_TABLE",
+            "name": "exculdeEvents",
+            "displayName": "Exclude events",
+            "simpleTableColumns": [
+              {
+                "defaultValue": "",
+                "displayName": "Event name to be excluded",
+                "name": "name",
+                "type": "TEXT",
+                "valueHint": "eg. set_id",
+                "isUnique": true
+              }
+            ]
+          },
+          {
             "type": "PARAM_TABLE",
             "name": "eventProperties",
             "displayName": "Pre Defined Properties",
@@ -1171,6 +1186,11 @@ function getUserpropertiesFromData(eventData, propertiesList) {
 function matchStringWithRegex(str, regex) {
   return regex.length > 0 && str.search(regex) > -1;
 }
+
+function matchStringWithRegexArray(str, regexArray) {
+   return regexArray.some((item) =>  matchStringWithRegex(str, item));
+}
+
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 
 var dataLayer = copyFromWindow('dataLayer') || [];
@@ -1181,6 +1201,7 @@ function callSDKForEvent(eventData) {
   if (eventData && eventData[eventNameKey]) {
     const regex = data.name_pattern;
     const eventList = data.eventsList || [];
+    const excludeEventList = data.exculdeEvents || [];   
     const pageViewEventName = data.pageViewName || 'gtm.js';
     const eventPropertiesList = data.eventProperties || [];
     const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
@@ -1276,7 +1297,8 @@ function callSDKForEvent(eventData) {
       const propertiesList = data.user_attributes;
       const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
-    } else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey])) {
+    } else if ((matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey]))
+             && !matchStringWithRegexArray(eventData[eventNameKey], excludeEventList)) {
       log('regex matched with event name');
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
