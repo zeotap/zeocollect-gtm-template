@@ -279,7 +279,7 @@ ___TEMPLATE_PARAMETERS___
           },
           {
             "type": "SIMPLE_TABLE",
-            "name": "exculdeEvents",
+            "name": "excludeEvents",
             "displayName": "Exclude events",
             "simpleTableColumns": [
               {
@@ -1201,7 +1201,7 @@ function callSDKForEvent(eventData) {
   if (eventData && eventData[eventNameKey]) {
     const regex = data.name_pattern;
     const eventList = data.eventsList || [];
-    const excludeEventList = data.exculdeEvents || [];   
+    const excludeEventList = data.excludeEvents || [];   
     const pageViewEventName = data.pageViewName || 'gtm.js';
     const eventPropertiesList = data.eventProperties || [];
     const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
