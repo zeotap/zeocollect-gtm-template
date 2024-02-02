@@ -1211,7 +1211,6 @@ function callSDKForEvent(eventData) {
     log('Tag fired for Event:', eventData[eventNameKey], eventData);
     // now check the regex to see if it matches with the regex
 
-
     if (eventData[eventNameKey] == pageViewEventName) {
       log('pageview event');
       //assuming setPageProperties( ...args) 
@@ -1355,7 +1354,7 @@ if (!!dataLayer && !!dataLayer.length) {
     const excludeEventList = data.excludeEvents || [];   
     const eventNameKey = data.eventKey || 'event';
 
-    if(matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
+    if(eventData && eventData[eventNameKey] && excludeEventList.length>0 && matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
       log('Could not Fire Tag Event as event regex matched exclusion regex');
       continue;
     }
