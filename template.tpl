@@ -1187,8 +1187,8 @@ function matchStringWithRegex(str, regex) {
   return regex.length > 0 && str.search(regex) > -1;
 }
 
-function matchStringWithRegexArray(str, regexArray) {
-   return regexArray.some((item) =>  matchStringWithRegex(str, item));
+function matchStringWithRegexObjArray(str, regexObjArray) {
+   return regexObjArray.some((item) =>  matchStringWithRegex(str, item.name));
 }
 
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
@@ -1298,7 +1298,7 @@ function callSDKForEvent(eventData) {
       const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
     } else if ((matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey]))
-             && !matchStringWithRegexArray(eventData[eventNameKey], excludeEventList)) {
+             && !matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
       log('regex matched with event name');
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
