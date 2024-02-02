@@ -1201,17 +1201,11 @@ function callSDKForEvent(eventData) {
   if (eventData && eventData[eventNameKey]) {
     const regex = data.name_pattern;
     const eventList = data.eventsList || [];
-    const excludeEventList = data.excludeEvents || [];   
     const pageViewEventName = data.pageViewName || 'gtm.js';
     const eventPropertiesList = data.eventProperties || [];
     const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
     const listOfPIIS = data.excludePII || [];
     const data_wo_pii = removePIIs(listOfPIIS, eventData);
-
-    if(matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
-      log('Could not Fire Tag Event as event regex matched exclusion regex');
-      return;
-    }
 
     // parse the dataLayer and log the event that took place
     log('Tag fired for Event:', eventData[eventNameKey], eventData);
@@ -1358,6 +1352,14 @@ if (!!dataLayer && !!dataLayer.length) {
   let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
   for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
     const eventData = dataLayer[i];
+    const excludeEventList = data.excludeEvents || [];   
+    const eventNameKey = data.eventKey || 'event';
+
+    if(matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
+      log('Could not Fire Tag Event as event regex matched exclusion regex');
+      continue;
+    }
+
     log('Initiating call to SDK for : ', eventData, i);
     callSDKForEvent(eventData);
   }
