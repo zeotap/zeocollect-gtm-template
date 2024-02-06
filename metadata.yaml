@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 580406cd71ec6e82ccf1cb5bbfd20a42e3e5b36c 
+    changeNotes: Added exclusion events feature
   - sha: a36cd6e92ce9548992f806b9195864245460a8ee 
     changeNotes: Added persistence of user properties in subsequent calls
   - sha: ced62b0ff4de96bbc18445929a1a37e39454a9cf
