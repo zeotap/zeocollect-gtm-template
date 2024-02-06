@@ -278,6 +278,21 @@ ___TEMPLATE_PARAMETERS___
             "help": "Event names that we want to track apart from the regex provided."
           },
           {
+            "type": "SIMPLE_TABLE",
+            "name": "excludeEvents",
+            "displayName": "Exclude events",
+            "simpleTableColumns": [
+              {
+                "defaultValue": "",
+                "displayName": "Event name to be excluded",
+                "name": "name",
+                "type": "TEXT",
+                "valueHint": "eg. set_id",
+                "isUnique": true
+              }
+            ]
+          },
+          {
             "type": "PARAM_TABLE",
             "name": "eventProperties",
             "displayName": "Pre Defined Properties",
@@ -1171,6 +1186,11 @@ function getUserpropertiesFromData(eventData, propertiesList) {
 function matchStringWithRegex(str, regex) {
   return regex.length > 0 && str.search(regex) > -1;
 }
+
+function matchStringWithRegexObjArray(str, regexObjArray) {
+   return regexObjArray.some((item) =>  matchStringWithRegex(str, item.name));
+}
+
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 
 var dataLayer = copyFromWindow('dataLayer') || [];
@@ -1186,7 +1206,7 @@ function callSDKForEvent(eventData) {
     const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
     const listOfPIIS = data.excludePII || [];
     const data_wo_pii = removePIIs(listOfPIIS, eventData);
-  
+
     // parse the dataLayer and log the event that took place
     log('Tag fired for Event:', eventData[eventNameKey], eventData);
     // now check the regex to see if it matches with the regex
@@ -1331,6 +1351,14 @@ if (!!dataLayer && !!dataLayer.length) {
   let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
   for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
     const eventData = dataLayer[i];
+    const excludeEventList = data.excludeEvents || [];   
+    const eventNameKey = data.eventKey || 'event';
+
+    if(eventData && eventData[eventNameKey] && excludeEventList.length>0 && matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
+      log('Could not Fire Tag Event as event regex matched exclusion regex');
+      continue;
+    }
+
     log('Initiating call to SDK for : ', eventData, i);
     callSDKForEvent(eventData);
   }
