@@ -1008,6 +1008,40 @@ ___TEMPLATE_PARAMETERS___
                 "type": "EQUALS"
               }
             ]
+          },
+          {
+            "type": "GROUP",
+            "name": "custom_identities_group",
+            "displayName": "Custom Identities",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "PARAM_TABLE",
+                "name": "customIdentities",
+                "displayName": "",
+                "paramTableColumns": [
+                  {
+                    "param": {
+                      "type": "TEXT",
+                      "name": "key",
+                      "displayName": "Property Key",
+                      "simpleValueType": true
+                    },
+                    "isUnique": false
+                  },
+                  {
+                    "param": {
+                      "type": "TEXT",
+                      "name": "value",
+                      "displayName": "Property Value",
+                      "simpleValueType": true
+                    },
+                    "isUnique": false
+                  }
+                ]
+              }
+            ],
+            "help": "These values will be sent as custom identities in all calls"
           }
         ]
       },
@@ -1138,13 +1172,7 @@ const callInWindow = require('callInWindow');
 const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
-
-function mergeUserPropsAndIdentities(userProperties, identities) {
-return [userProperties, identities].reduce((final, current) => { 
-  for (var key in current) { final[key] = current[key]; } 
-  return final;
-  }, {});
-}
+const copyFromDataLayer = require("copyFromDataLayer");
 
 function isNamePresentIn(array, searchKey) {
   return array.some((item) => item.name === searchKey);
@@ -1178,7 +1206,7 @@ function removePIIs(listOfPIIs, eventData) {
 
 function getUserpropertiesFromData(eventData, propertiesList) {
   return propertiesList.reduce((acc, curr) => {
-    acc[curr.name] = eventData[curr.name];
+    acc[curr.name] = eventData[curr.name] || copyFromDataLayer(curr.name);
     return acc; 
   }, {});
 }
@@ -1226,6 +1254,15 @@ function callSDKForEvent(eventData) {
       
       // collect the pii values
       const identities = {};
+      
+      //setting custom identities
+      if(data.customIdentities) {
+        for(let id of data.customIdentities) {
+          if(id.key && id.value)
+          identities[id.key] = id.value;
+        }
+      }
+      
       if (data.areIdentitiesHashed) {
         if (data.hashed_email_exists) {
           for (let i=0;i< data.hashed_email_table.length;i++) {
@@ -1275,11 +1312,9 @@ function callSDKForEvent(eventData) {
           }
         }
       }
-      var mergedIdentities = mergeUserPropsAndIdentities(userProperties,identities);
-      log('identities are ...', identities);
-      log('setUserIdentities getting invoked with identities merged with user props... : ', mergedIdentities);
       
-      callInWindow('zeotap.callMethod', 'setUserIdentities', mergedIdentities, data.areIdentitiesHashed);
+      log('setUserIdentities getting invoked');
+      callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
         callInWindow(
@@ -1704,6 +1739,27 @@ ___WEB_PERMISSIONS___
                 ]
               }
             ]
+          }
+        }
+      ]
+    },
+    "clientAnnotations": {
+      "isEditedByUser": true
+    },
+    "isRequired": true
+  },
+  {
+    "instance": {
+      "key": {
+        "publicId": "read_data_layer",
+        "versionId": "1"
+      },
+      "param": [
+        {
+          "key": "allowedKeys",
+          "value": {
+            "type": 1,
+            "string": "any"
           }
         }
       ]
