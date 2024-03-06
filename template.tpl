@@ -66,6 +66,13 @@ ___TEMPLATE_PARAMETERS___
         "defaultValue": "event"
       },
       {
+        "type": "CHECKBOX",
+        "name": "persistenceInCookieStorage",
+        "checkboxText": "Persist data in cookie storage",
+        "simpleValueType": true,
+        "displayName": "Data Persistence"
+      },
+      {
         "type": "SELECT",
         "name": "consent_method",
         "displayName": "Consent Method",
@@ -1370,7 +1377,8 @@ if (zeotapCallMethod == undefined) {
     gaUserIdOnlyLoginEvent: data.gaUserIdOnlyLoginEvent,
     enableLogging: false,
     areIdentitiesHashed: data.areIdentitiesHashed,
-    hashIdentities: data.hashIdentities
+    hashIdentities: data.hashIdentities,
+    persistenceInCookieStorage: data.persistenceInCookieStorage
   };
 
 
