@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 145894a15749b018a57a65b2fe93ecfdd378c0c8
+    changeNotes: added persistenceInCookieStorage flag in options
   - sha: bc9527ab75ebc8d1e163cd240918a8b42c4b8336
     changeNotes: Added support for custom identities in login event
   - sha: 580406cd71ec6e82ccf1cb5bbfd20a42e3e5b36c 
