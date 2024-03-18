@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: ffc7726a91a83269bd1f3f8a75c0e63afe7bf766
+    changeNotes: Added logic for using _qcmp if setConsent is called before init
   - sha: 145894a15749b018a57a65b2fe93ecfdd378c0c8
     changeNotes: added persistenceInCookieStorage flag in options
   - sha: bc9527ab75ebc8d1e163cd240918a8b42c4b8336
