@@ -1227,6 +1227,7 @@ function matchStringWithRegexObjArray(str, regexObjArray) {
 }
 
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
+const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
 
 var dataLayer = copyFromWindow('dataLayer') || [];
 
@@ -1324,15 +1325,15 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
-        callInWindow(
-          'zeotap.callMethod',
-          'setConsent',
+     
+      if(!!zeotapSetConsent) {
+            callInWindow('zeotap.setConsent',
           { 
-            track: data.track,
-            identify: data.identify,
-            cookieSync: data.cookieSync
-          }
-        );
+            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
+            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
+            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
+          });
+      }
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
       const propertiesList = data.user_attributes;
@@ -1347,6 +1348,14 @@ function callSDKForEvent(eventData) {
 }
 
 // main execution
+if (!!dataLayer && !!dataLayer.length) {
+ let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
+  for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
+    const eventData = dataLayer[i];
+    const excludeEventList = data.excludeEvents || [];   
+    const eventNameKey = data.eventKey || 'event';
+    
+    
 if (zeotapCallMethod == undefined) {
   const consentOptions = {
     'default': [{ key: 'useConsent', value: false }],
@@ -1380,22 +1389,27 @@ if (zeotapCallMethod == undefined) {
     hashIdentities: data.hashIdentities,
     persistenceInCookieStorage: data.persistenceInCookieStorage
   };
-
-
+  
   setInWindow("zeotap", { _q: [], _qcmp: [] });
   setInWindow('zeotap.callMethod', function () {
     callInWindow('zeotap._q.push', arguments);
   });
+   if (eventData && eventData[eventNameKey] == data.customConsentMethod && !zeotapSetConsent) {
+       callInWindow(
+          'zeotap._qcmp.push',
+         ['setConsent',
+          { 
+            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
+            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
+            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
+          }]
+        );
+    }
+  
   callInWindow('zeotap.callMethod', 'init', data.writeKey, options);
   injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeoCollect');
 }
 
-if (!!dataLayer && !!dataLayer.length) {
-  let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
-  for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
-    const eventData = dataLayer[i];
-    const excludeEventList = data.excludeEvents || [];   
-    const eventNameKey = data.eventKey || 'event';
 
     if(eventData && eventData[eventNameKey] && excludeEventList.length>0 && matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
       log('Could not Fire Tag Event as event regex matched exclusion regex');
@@ -1743,6 +1757,123 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 8,
                     "boolean": false
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "zeotap.setConsent"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "zeotap._qcmp"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "zeotap._qcmp.push"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": false
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
                   }
                 ]
               }
