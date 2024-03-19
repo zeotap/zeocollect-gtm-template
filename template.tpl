@@ -1326,7 +1326,7 @@ function callSDKForEvent(eventData) {
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
      
-      if(!!zeotapSetConsent) {
+      if(!!copyFromWindow('zeotap.setConsent')) {
             callInWindow('zeotap.setConsent',
           { 
             track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
@@ -1356,7 +1356,7 @@ if (!!dataLayer && !!dataLayer.length) {
     const eventNameKey = data.eventKey || 'event';
     
     
-if (zeotapCallMethod == undefined) {
+if (copyFromWindow('zeotap.callMethod') == undefined) {
   const consentOptions = {
     'default': [{ key: 'useConsent', value: false }],
     'tcf': [{ key: 'useConsent', value: true }, { key: 'checkForCMP', value: true }],
@@ -1394,7 +1394,7 @@ if (zeotapCallMethod == undefined) {
   setInWindow('zeotap.callMethod', function () {
     callInWindow('zeotap._q.push', arguments);
   });
-   if (eventData && eventData[eventNameKey] == data.customConsentMethod && !zeotapSetConsent) {
+   if (options.useConsent && !options.checkForCMP && eventData && eventData[eventNameKey] == data.customConsentMethod && !copyFromWindow('zeotap.setConsent')) {
        callInWindow(
           'zeotap._qcmp.push',
          ['setConsent',
