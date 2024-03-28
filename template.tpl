@@ -1327,12 +1327,24 @@ function callSDKForEvent(eventData) {
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
      
       if(!!copyFromWindow('zeotap.setConsent')) {
+        log('setting consent from callForSDK setConsent');
             callInWindow('zeotap.setConsent',
           { 
             track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
             identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
             cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
           });
+      } else {
+        log('setting consent from callForSDK _qcmp');
+       callInWindow(
+          'zeotap._qcmp.push',
+         ['setConsent',
+          { 
+            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
+            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
+            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
+          }]
+        );
       }
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
@@ -1395,6 +1407,7 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
     callInWindow('zeotap._q.push', arguments);
   });
    if (options.useConsent && !options.checkForCMP && eventData && eventData[eventNameKey] == data.customConsentMethod && !copyFromWindow('zeotap.setConsent')) {
+     log('setting consent from initial _qcmp');
        callInWindow(
           'zeotap._qcmp.push',
          ['setConsent',
