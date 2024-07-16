@@ -1323,6 +1323,7 @@ function callSDKForEvent(eventData) {
       
       log('setUserIdentities getting invoked');
       callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
+      callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], {});
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
      
