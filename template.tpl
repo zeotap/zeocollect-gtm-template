@@ -1164,6 +1164,49 @@ ___TEMPLATE_PARAMETERS___
         ]
       }
     ]
+  },
+  {
+    "type": "GROUP",
+    "name": "id5",
+    "displayName": "ID5 Configuration",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "CHECKBOX",
+        "name": "enableID5",
+        "checkboxText": "Enable ID5 Integration",
+        "simpleValueType": true,
+        "help": "Turn this on to enable the ID5 integration. This would enable the template to collect ID5 values along with event data."
+      },
+      {
+        "type": "TEXT",
+        "name": "id5PartnerId",
+        "displayName": "ID5 Partner ID",
+        "simpleValueType": true,
+        "enablingConditions": [
+          {
+            "paramName": "enableID5",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ],
+        "help": "Please enter your ID5 Partner ID, which is the unique partner ID assigned to you by ID5."
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "sendPartnerDataToID5",
+        "checkboxText": "Send Custom Identifier to ID5",
+        "simpleValueType": true,
+        "enablingConditions": [
+          {
+            "paramName": "enableID5",
+            "paramValue": true,
+            "type": "EQUALS"
+          }
+        ],
+        "help": "By checking this box, ID5 will receive the email and cellphone\u0027s Sha256 hash information provided on the website for improved user identification and ID5 generation."
+      }
+    ]
   }
 ]
 
@@ -1327,8 +1370,7 @@ function callSDKForEvent(eventData) {
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
      
-      if(!!copyFromWindow('zeotap.setConsent')) {
-        log('setting consent from callForSDK setConsent');
+      if(!!zeotapSetConsent) {
             callInWindow('zeotap.setConsent',
           { 
             track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
@@ -1336,8 +1378,7 @@ function callSDKForEvent(eventData) {
             cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
           });
       } else {
-        log('setting consent from callForSDK _qcmp');
-       callInWindow(
+        callInWindow(
           'zeotap._qcmp.push',
          ['setConsent',
           { 
@@ -1367,7 +1408,6 @@ if (!!dataLayer && !!dataLayer.length) {
     const eventData = dataLayer[i];
     const excludeEventList = data.excludeEvents || [];   
     const eventNameKey = data.eventKey || 'event';
-    
     
 if (copyFromWindow('zeotap.callMethod') == undefined) {
   const consentOptions = {
@@ -1400,15 +1440,17 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
     enableLogging: false,
     areIdentitiesHashed: data.areIdentitiesHashed,
     hashIdentities: data.hashIdentities,
-    persistenceInCookieStorage: data.persistenceInCookieStorage
+    persistenceInCookieStorage: data.persistenceInCookieStorage,
+    enableID5: data.enableID5,
+    id5PartnerId: data.id5PartnerId,
+    sendPartnerDataToID5: data.sendPartnerDataToID5
   };
   
   setInWindow("zeotap", { _q: [], _qcmp: [] });
   setInWindow('zeotap.callMethod', function () {
     callInWindow('zeotap._q.push', arguments);
   });
-   if (options.useConsent && !options.checkForCMP && eventData && eventData[eventNameKey] == data.customConsentMethod && !copyFromWindow('zeotap.setConsent')) {
-     log('setting consent from initial _qcmp');
+   if (options.useConsent && !options.checkForCMP && eventData && (eventData[eventNameKey] == data.customConsentMethod) && !zeotapSetConsent) {
        callInWindow(
           'zeotap._qcmp.push',
          ['setConsent',
