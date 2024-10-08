@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 7d5bfbed9a431bb9c6be4f1f266276c82e396f67
+    changeNotes: template changes to support ID5 integration
   - sha: 25262913dc688e973e80e46be6b63278a695165b
     changeNotes: added custom event call for login_event 
   - sha: 96628d4b2c9cad7809287459649778c264a90533
