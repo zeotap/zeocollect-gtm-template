@@ -1223,6 +1223,7 @@ const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 const copyFromDataLayer = require("copyFromDataLayer");
+const Object = require('Object');
 
 function isNamePresentIn(array, searchKey) {
   return array.some((item) => item.name === searchKey);
@@ -1268,6 +1269,15 @@ function matchStringWithRegex(str, regex) {
 function matchStringWithRegexObjArray(str, regexObjArray) {
    return regexObjArray.some((item) =>  matchStringWithRegex(str, item.name));
 }
+
+function mergeObjects(obj1, obj2) {
+  const mergedObject = Object.keys(obj2).reduce(function(acc, key) {
+    acc[key] = obj2[key];
+    return acc;
+  }, obj1);
+  return mergedObject;
+}
+
 
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
@@ -1369,31 +1379,30 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], {});
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
-     
+      const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue') || {};
+      const primaryConsent = { 
+            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
+            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
+            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync ==='true')};
+        
+        const consentParams = mergeObjects(primaryConsent, brandConsentList);
       if(!!zeotapSetConsent) {
-            callInWindow('zeotap.setConsent',
-          { 
-            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
-            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
-            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
-          });
+        callInWindow('zeotap.setConsent',consentParams);
       } else {
-        callInWindow(
-          'zeotap._qcmp.push',
-         ['setConsent',
-          { 
-            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
-            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
-            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
-          }]
-        );
+
+        callInWindow('zeotap._qcmp.push', ['setConsent', consentParams]);
       }
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
       const propertiesList = data.user_attributes;
       const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
-    } else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey])) {
+    } 
+    else if(eventData[eventNameKey] == data.brandConsentMethod) {
+        const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue');
+       callInWindow('zeotap.setConsent', brandConsentList);
+    }
+    else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList,       eventData[eventNameKey])) {
       log('regex matched with event name');
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
@@ -1443,7 +1452,8 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
     persistenceInCookieStorage: data.persistenceInCookieStorage,
     enableID5: data.enableID5,
     id5PartnerId: data.id5PartnerId,
-    sendPartnerDataToID5: data.sendPartnerDataToID5
+    sendPartnerDataToID5: data.sendPartnerDataToID5,
+    includeTCFString: data.includeTCFString
   };
   
   setInWindow("zeotap", { _q: [], _qcmp: [] });
