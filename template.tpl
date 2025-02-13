@@ -73,158 +73,228 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Data Persistence"
       },
       {
-        "type": "SELECT",
-        "name": "consent_method",
-        "displayName": "Consent Method",
-        "selectItems": [
-          {
-            "value": "default",
-            "displayValue": "Default Opt-in"
-          },
-          {
-            "value": "tcf",
-            "displayValue": "Check TCFv2 CMP (GDPR)"
-          },
-          {
-            "value": "custom",
-            "displayValue": "Custom Consent"
-          }
-        ],
-        "simpleValueType": true,
-        "valueValidators": [
-          {
-            "type": "NON_EMPTY"
-          }
-        ],
-        "defaultValue": "default"
-      },
-      {
         "type": "GROUP",
-        "name": "customConsentConfig",
-        "displayName": "SDK Consent Signals",
+        "name": "consentGroup",
+        "displayName": "Consent",
         "groupStyle": "NO_ZIPPY",
         "subParams": [
           {
-            "type": "TEXT",
-            "name": "customConsentMethod",
-            "displayName": "Event name indicating that consent is set",
+            "type": "SELECT",
+            "name": "consent_method",
+            "displayName": "Primary Consent Method",
+            "selectItems": [
+              {
+                "value": "default",
+                "displayValue": "Default Opt-in"
+              },
+              {
+                "value": "tcf",
+                "displayValue": "Check TCFv2 CMP (GDPR)"
+              },
+              {
+                "value": "custom",
+                "displayValue": "Custom Consent"
+              }
+            ],
             "simpleValueType": true,
             "valueValidators": [
               {
                 "type": "NON_EMPTY"
               }
+            ],
+            "defaultValue": "default"
+          },
+          {
+            "type": "CHECKBOX",
+            "name": "includeTCFString",
+            "checkboxText": "Include TC String in requests",
+            "simpleValueType": true,
+            "displayName": "TC String",
+            "help": "TCF API should be available for reading the string.",
+            "enablingConditions": [
+              {
+                "paramName": "consent_method",
+                "paramValue": "tcf",
+                "type": "NOT_EQUALS"
+              }
             ]
           },
           {
-            "type": "TEXT",
-            "name": "track",
-            "displayName": "Track",
-            "simpleValueType": true,
-            "help": "Consent signal that allows SDK to capture events"
-          },
-          {
-            "type": "TEXT",
-            "name": "identify",
-            "displayName": "Identify",
-            "simpleValueType": true,
-            "help": "Consent signal that allows SDK to identify a user"
-          },
-          {
-            "type": "TEXT",
-            "name": "cookieSync",
-            "displayName": "Cookie Sync",
-            "simpleValueType": true,
-            "help": "Consent signal that allows SDK to cookie sync with channel partners"
-          }
-        ],
-        "enablingConditions": [
-          {
-            "paramName": "consent_method",
-            "paramValue": "custom",
-            "type": "EQUALS"
-          }
-        ]
-      },
-      {
-        "type": "GROUP",
-        "name": "gdprConfig",
-        "displayName": "Configuration for GDPR",
-        "groupStyle": "NO_ZIPPY",
-        "subParams": [
-          {
             "type": "GROUP",
-            "name": "purposesForTrack",
-            "displayName": "Purposes for tracking of events",
+            "name": "customConsentConfig",
+            "displayName": "SDK Consent Signals",
             "groupStyle": "NO_ZIPPY",
             "subParams": [
               {
-                "type": "CHECKBOX",
-                "name": "trackPurpose1",
-                "checkboxText": "Store and/or access information on a device",
-                "simpleValueType": true
+                "type": "TEXT",
+                "name": "customConsentMethod",
+                "displayName": "Event name indicating that consent is set",
+                "simpleValueType": true,
+                "valueValidators": [
+                  {
+                    "type": "NON_EMPTY"
+                  }
+                ]
               },
               {
-                "type": "CHECKBOX",
-                "name": "trackPurpose2",
-                "checkboxText": "Select basic ads",
-                "simpleValueType": true
+                "type": "TEXT",
+                "name": "track",
+                "displayName": "Track",
+                "simpleValueType": true,
+                "help": "Consent signal that allows SDK to capture events"
               },
               {
-                "type": "CHECKBOX",
-                "name": "trackPurpose3",
-                "checkboxText": "Create a personalised ad profile",
-                "simpleValueType": true
+                "type": "TEXT",
+                "name": "identify",
+                "displayName": "Identify",
+                "simpleValueType": true,
+                "help": "Consent signal that allows SDK to identify a user"
               },
               {
-                "type": "CHECKBOX",
-                "name": "trackPurpose4",
-                "checkboxText": "Select personalised ads",
-                "simpleValueType": true
-              },
+                "type": "TEXT",
+                "name": "cookieSync",
+                "displayName": "Cookie Sync",
+                "simpleValueType": true,
+                "help": "Consent signal that allows SDK to cookie sync with channel partners"
+              }
+            ],
+            "enablingConditions": [
               {
-                "type": "CHECKBOX",
-                "name": "trackPurpose5",
-                "checkboxText": "Create a personalised content profile",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose6",
-                "checkboxText": "Select personalised content",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose7",
-                "checkboxText": "Measure ad performance",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose8",
-                "checkboxText": "Measure content performance",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose9",
-                "checkboxText": "Apply market research to generate audience insights",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose10",
-                "checkboxText": "Develop and improve products",
-                "simpleValueType": true
+                "paramName": "consent_method",
+                "paramValue": "custom",
+                "type": "EQUALS"
               }
             ]
-          }
-        ],
-        "enablingConditions": [
+          },
           {
-            "paramName": "consent_method",
-            "paramValue": "tcf",
-            "type": "EQUALS"
+            "type": "GROUP",
+            "name": "gdprConfig",
+            "displayName": "Configuration for GDPR",
+            "groupStyle": "NO_ZIPPY",
+            "subParams": [
+              {
+                "type": "GROUP",
+                "name": "purposesForTrack",
+                "displayName": "Purposes for tracking of events",
+                "groupStyle": "NO_ZIPPY",
+                "subParams": [
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose1",
+                    "checkboxText": "Store and/or access information on a device",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose2",
+                    "checkboxText": "Select basic ads",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose3",
+                    "checkboxText": "Create a personalised ad profile",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose4",
+                    "checkboxText": "Select personalised ads",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose5",
+                    "checkboxText": "Create a personalised content profile",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose6",
+                    "checkboxText": "Select personalised content",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose7",
+                    "checkboxText": "Measure ad performance",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose8",
+                    "checkboxText": "Measure content performance",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose9",
+                    "checkboxText": "Apply market research to generate audience insights",
+                    "simpleValueType": true
+                  },
+                  {
+                    "type": "CHECKBOX",
+                    "name": "trackPurpose10",
+                    "checkboxText": "Develop and improve products",
+                    "simpleValueType": true
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "consent_method",
+                "paramValue": "tcf",
+                "type": "EQUALS"
+              }
+            ]
+          },
+          {
+            "type": "GROUP",
+            "name": "brand_consent",
+            "displayName": "Brand Consents (Optional)",
+            "groupStyle": "NO_ZIPPY",
+            "subParams": [
+              {
+                "type": "TEXT",
+                "name": "brandConsentMethod",
+                "displayName": "Event name indicating that brand consent is set",
+                "simpleValueType": true,
+                "enablingConditions": [
+                  {
+                    "paramName": "consent_method",
+                    "paramValue": "custom",
+                    "type": "NOT_EQUALS"
+                  }
+                ]
+              },
+              {
+                "type": "PARAM_TABLE",
+                "name": "brandConsentParams",
+                "displayName": "Brand Consents",
+                "paramTableColumns": [
+                  {
+                    "param": {
+                      "type": "TEXT",
+                      "name": "brandConsentKey",
+                      "displayName": "Key",
+                      "simpleValueType": true
+                    },
+                    "isUnique": false
+                  },
+                  {
+                    "param": {
+                      "type": "TEXT",
+                      "name": "brandConsentValue",
+                      "displayName": "Value",
+                      "simpleValueType": true
+                    },
+                    "isUnique": false
+                  }
+                ]
+              }
+            ],
+            "help": "Brand consent values to be sent i all requests"
           }
         ]
       }
