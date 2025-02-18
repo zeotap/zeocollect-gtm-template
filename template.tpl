@@ -70,161 +70,306 @@ ___TEMPLATE_PARAMETERS___
         "name": "persistenceInCookieStorage",
         "checkboxText": "Persist data in cookie storage",
         "simpleValueType": true,
+        "help": "Select the checkbox to store identifiers and consent in Cookies across domains; otherwise, they are stored in Session Storage",
         "displayName": "Data Persistence"
       },
       {
-        "type": "SELECT",
-        "name": "consent_method",
-        "displayName": "Consent Method",
-        "selectItems": [
-          {
-            "value": "default",
-            "displayValue": "Default Opt-in"
-          },
-          {
-            "value": "tcf",
-            "displayValue": "Check TCFv2 CMP (GDPR)"
-          },
-          {
-            "value": "custom",
-            "displayValue": "Custom Consent"
-          }
-        ],
-        "simpleValueType": true,
-        "valueValidators": [
-          {
-            "type": "NON_EMPTY"
-          }
-        ],
-        "defaultValue": "default"
-      },
-      {
         "type": "GROUP",
-        "name": "customConsentConfig",
-        "displayName": "SDK Consent Signals",
-        "groupStyle": "NO_ZIPPY",
-        "subParams": [
-          {
-            "type": "TEXT",
-            "name": "customConsentMethod",
-            "displayName": "Event name indicating that consent is set",
-            "simpleValueType": true,
-            "valueValidators": [
-              {
-                "type": "NON_EMPTY"
-              }
-            ]
-          },
-          {
-            "type": "TEXT",
-            "name": "track",
-            "displayName": "Track",
-            "simpleValueType": true,
-            "help": "Consent signal that allows SDK to capture events"
-          },
-          {
-            "type": "TEXT",
-            "name": "identify",
-            "displayName": "Identify",
-            "simpleValueType": true,
-            "help": "Consent signal that allows SDK to identify a user"
-          },
-          {
-            "type": "TEXT",
-            "name": "cookieSync",
-            "displayName": "Cookie Sync",
-            "simpleValueType": true,
-            "help": "Consent signal that allows SDK to cookie sync with channel partners"
-          }
-        ],
-        "enablingConditions": [
-          {
-            "paramName": "consent_method",
-            "paramValue": "custom",
-            "type": "EQUALS"
-          }
-        ]
-      },
-      {
-        "type": "GROUP",
-        "name": "gdprConfig",
-        "displayName": "Configuration for GDPR",
+        "name": "consentGroup",
+        "displayName": "Configure Consent Settings",
         "groupStyle": "NO_ZIPPY",
         "subParams": [
           {
             "type": "GROUP",
-            "name": "purposesForTrack",
-            "displayName": "Purposes for tracking of events",
-            "groupStyle": "NO_ZIPPY",
+            "name": "primaryConsent",
+            "displayName": "Primary Consent",
+            "groupStyle": "ZIPPY_OPEN",
+            "subParams": [
+              {
+                "type": "SELECT",
+                "name": "consent_method",
+                "displayName": "Primary Consent Method",
+                "selectItems": [
+                  {
+                    "value": "default",
+                    "displayValue": "Default Opt-in"
+                  },
+                  {
+                    "value": "tcf",
+                    "displayValue": "Check TCFv2 CMP (GDPR)"
+                  },
+                  {
+                    "value": "custom",
+                    "displayValue": "Custom Consent"
+                  }
+                ],
+                "simpleValueType": true,
+                "valueValidators": [
+                  {
+                    "type": "NON_EMPTY"
+                  }
+                ],
+                "defaultValue": "default",
+                "subParams": [
+                  {
+                    "type": "GROUP",
+                    "name": "customConsentConfig",
+                    "displayName": "SDK Consent Signals",
+                    "groupStyle": "NO_ZIPPY",
+                    "subParams": [
+                      {
+                        "type": "TEXT",
+                        "name": "customConsentMethod",
+                        "displayName": "Event name indicating that consent is set",
+                        "simpleValueType": true,
+                        "valueValidators": [
+                          {
+                            "type": "NON_EMPTY"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "TEXT",
+                        "name": "track",
+                        "displayName": "Track",
+                        "simpleValueType": true,
+                        "help": "Consent signal that allows SDK to capture events",
+                        "valueValidators": [
+                          {
+                            "type": "NON_EMPTY"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "TEXT",
+                        "name": "identify",
+                        "displayName": "Identify",
+                        "simpleValueType": true,
+                        "help": "Consent signal that allows SDK to identify a user",
+                        "valueValidators": [
+                          {
+                            "type": "NON_EMPTY"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "TEXT",
+                        "name": "cookieSync",
+                        "displayName": "Cookie Sync",
+                        "simpleValueType": true,
+                        "help": "Consent signal that allows SDK to cookie sync with channel partners",
+                        "valueValidators": [
+                          {
+                            "type": "NON_EMPTY",
+                            "errorMessage": "wow"
+                          }
+                        ]
+                      }
+                    ],
+                    "enablingConditions": [
+                      {
+                        "paramName": "consent_method",
+                        "paramValue": "custom",
+                        "type": "EQUALS"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "GROUP",
+                    "name": "gdprConfig",
+                    "groupStyle": "NO_ZIPPY",
+                    "subParams": [
+                      {
+                        "type": "GROUP",
+                        "name": "purposesForTrack",
+                        "displayName": "Purposes for tracking of events",
+                        "groupStyle": "NO_ZIPPY",
+                        "subParams": [
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose1",
+                            "checkboxText": "Store and/or access information on a device",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose2",
+                            "checkboxText": "Select basic ads",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose3",
+                            "checkboxText": "Create a personalised ad profile",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose4",
+                            "checkboxText": "Select personalised ads",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose5",
+                            "checkboxText": "Create a personalised content profile",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose6",
+                            "checkboxText": "Select personalised content",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose7",
+                            "checkboxText": "Measure ad performance",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose8",
+                            "checkboxText": "Measure content performance",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose9",
+                            "checkboxText": "Apply market research to generate audience insights",
+                            "simpleValueType": true
+                          },
+                          {
+                            "type": "CHECKBOX",
+                            "name": "trackPurpose10",
+                            "checkboxText": "Develop and improve products",
+                            "simpleValueType": true
+                          }
+                        ]
+                      }
+                    ],
+                    "enablingConditions": [
+                      {
+                        "paramName": "consent_method",
+                        "paramValue": "tcf",
+                        "type": "EQUALS"
+                      }
+                    ]
+                  }
+                ],
+                "help": "Consent mechanism to resolve user consent. \u003ca href\u003d\"https://docs.zeotap.com/articles/#!integrate-customer/implementing-google-tag-manager-source-2665775403/a/ImplementingGoogleTagManagerSource-ConfiguringtheInitialisationSettings\"\u003eLearn More\u003c/a\u003e"
+              }
+            ],
+            "help": "Consent mechanism to resolve the user consent"
+          },
+          {
+            "type": "GROUP",
+            "name": "additionalConsent",
+            "displayName": "Additional Consent Settings",
+            "groupStyle": "ZIPPY_CLOSED",
             "subParams": [
               {
                 "type": "CHECKBOX",
-                "name": "trackPurpose1",
-                "checkboxText": "Store and/or access information on a device",
-                "simpleValueType": true
+                "name": "includeTCFString",
+                "checkboxText": "Include TC String in the requests",
+                "simpleValueType": true,
+                "help": "TCF API must be available to read the TC string. Note that when the primary consent is set to Custom or Default, select the TCF checkbox to use the TCF consent stored in Zeotap in the cookie sync feature.",
+                "enablingConditions": [
+                  {
+                    "paramName": "consent_method",
+                    "paramValue": "tcf",
+                    "type": "NOT_EQUALS"
+                  }
+                ]
               },
               {
                 "type": "CHECKBOX",
-                "name": "trackPurpose2",
-                "checkboxText": "Select basic ads",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose3",
-                "checkboxText": "Create a personalised ad profile",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose4",
-                "checkboxText": "Select personalised ads",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose5",
-                "checkboxText": "Create a personalised content profile",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose6",
-                "checkboxText": "Select personalised content",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose7",
-                "checkboxText": "Measure ad performance",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose8",
-                "checkboxText": "Measure content performance",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose9",
-                "checkboxText": "Apply market research to generate audience insights",
-                "simpleValueType": true
-              },
-              {
-                "type": "CHECKBOX",
-                "name": "trackPurpose10",
-                "checkboxText": "Develop and improve products",
-                "simpleValueType": true
+                "name": "includeBrandConsent",
+                "checkboxText": "Include brand consent in the requests",
+                "simpleValueType": true,
+                "subParams": [
+                  {
+                    "type": "GROUP",
+                    "name": "Brand Consent",
+                    "displayName": "Brand Consents",
+                    "groupStyle": "NO_ZIPPY",
+                    "subParams": [
+                      {
+                        "type": "TEXT",
+                        "name": "brandConsentMethod",
+                        "displayName": "Event name indicating that brand consent is set",
+                        "simpleValueType": true,
+                        "enablingConditions": [
+                          {
+                            "paramName": "consent_method",
+                            "paramValue": "custom",
+                            "type": "NOT_EQUALS"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "PARAM_TABLE",
+                        "name": "brandConsentParams",
+                        "paramTableColumns": [
+                          {
+                            "param": {
+                              "type": "TEXT",
+                              "name": "brandConsentKey",
+                              "displayName": "Key",
+                              "simpleValueType": true,
+                              "valueValidators": [
+                                {
+                                  "type": "NON_EMPTY",
+                                  "errorMessage": "Value cannot be empty",
+                                  "enablingConditions": [
+                                    {
+                                      "paramName": "includeBrandConsent",
+                                      "paramValue": true,
+                                      "type": "EQUALS"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "isUnique": false
+                          },
+                          {
+                            "param": {
+                              "type": "TEXT",
+                              "name": "brandConsentValue",
+                              "displayName": "Value",
+                              "simpleValueType": true,
+                              "valueValidators": [
+                                {
+                                  "type": "NON_EMPTY",
+                                  "errorMessage": "Value cannot be empty",
+                                  "enablingConditions": [
+                                    {
+                                      "paramName": "includeBrandConsent",
+                                      "paramValue": true,
+                                      "type": "EQUALS"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "isUnique": false
+                          }
+                        ]
+                      }
+                    ],
+                    "enablingConditions": [
+                      {
+                        "paramName": "includeBrandConsent",
+                        "paramValue": true,
+                        "type": "EQUALS"
+                      }
+                    ]
+                  }
+                ],
+                "help": "Send custom brand consent specific to your brand using any consent method."
               }
             ]
-          }
-        ],
-        "enablingConditions": [
-          {
-            "paramName": "consent_method",
-            "paramValue": "tcf",
-            "type": "EQUALS"
           }
         ]
       }
@@ -297,7 +442,8 @@ ___TEMPLATE_PARAMETERS___
                 "valueHint": "eg. set_id",
                 "isUnique": true
               }
-            ]
+            ],
+            "help": "Events defined here would be ignored and not trigger any calls"
           },
           {
             "type": "PARAM_TABLE",
@@ -1063,8 +1209,7 @@ ___TEMPLATE_PARAMETERS___
             "paramValue": "",
             "type": "PRESENT"
           }
-        ],
-        "defaultValue": true
+        ]
       },
       {
         "type": "TEXT",
@@ -1128,8 +1273,7 @@ ___TEMPLATE_PARAMETERS___
         "type": "CHECKBOX",
         "name": "allowGAClientId",
         "checkboxText": "Pick Google Analytics client ID",
-        "simpleValueType": true,
-        "defaultValue": true
+        "simpleValueType": true
       },
       {
         "type": "TEXT",
@@ -1223,6 +1367,7 @@ const url = 'https://content.zeotap.com/sdk/zeotap.min.js';
 const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 const copyFromDataLayer = require("copyFromDataLayer");
+const Object = require('Object');
 
 function isNamePresentIn(array, searchKey) {
   return array.some((item) => item.name === searchKey);
@@ -1268,6 +1413,15 @@ function matchStringWithRegex(str, regex) {
 function matchStringWithRegexObjArray(str, regexObjArray) {
    return regexObjArray.some((item) =>  matchStringWithRegex(str, item.name));
 }
+
+function mergeObjects(obj1, obj2) {
+  const mergedObject = Object.keys(obj2).reduce(function(acc, key) {
+    acc[key] = obj2[key];
+    return acc;
+  }, obj1);
+  return mergedObject;
+}
+
 
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
@@ -1369,31 +1523,30 @@ function callSDKForEvent(eventData) {
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], {});
 
     } else if (eventData[eventNameKey] == data.customConsentMethod) {
-     
+      const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue') || {};
+      const primaryConsent = { 
+            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
+            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
+            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync ==='true')};
+        
+        const consentParams = mergeObjects(primaryConsent, brandConsentList);
       if(!!zeotapSetConsent) {
-            callInWindow('zeotap.setConsent',
-          { 
-            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
-            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
-            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
-          });
+        callInWindow('zeotap.setConsent',consentParams);
       } else {
-        callInWindow(
-          'zeotap._qcmp.push',
-         ['setConsent',
-          { 
-            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
-            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
-            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
-          }]
-        );
+
+        callInWindow('zeotap._qcmp.push', ['setConsent', consentParams]);
       }
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
       const propertiesList = data.user_attributes;
       const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
-    } else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList, eventData[eventNameKey])) {
+    } 
+    else if(eventData[eventNameKey] == data.brandConsentMethod) {
+        const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue');
+       callInWindow('zeotap.setConsent', brandConsentList);
+    }
+    else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList,       eventData[eventNameKey])) {
       log('regex matched with event name');
       callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
     }
@@ -1443,7 +1596,8 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
     persistenceInCookieStorage: data.persistenceInCookieStorage,
     enableID5: data.enableID5,
     id5PartnerId: data.id5PartnerId,
-    sendPartnerDataToID5: data.sendPartnerDataToID5
+    sendPartnerDataToID5: data.sendPartnerDataToID5,
+    includeTCFString: data.includeTCFString
   };
   
   setInWindow("zeotap", { _q: [], _qcmp: [] });
