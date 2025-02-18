@@ -256,7 +256,8 @@ ___TEMPLATE_PARAMETERS___
                       }
                     ]
                   }
-                ]
+                ],
+                "help": "Consent mechanism to resolve user consent. \u003ca href\u003d\"https://docs.zeotap.com/articles/#!integrate-customer/implementing-google-tag-manager-source-2665775403/a/ImplementingGoogleTagManagerSource-ConfiguringtheInitialisationSettings\"\u003eLearn More\u003c/a\u003e"
               }
             ],
             "help": "Consent mechanism to resolve the user consent"
@@ -272,7 +273,7 @@ ___TEMPLATE_PARAMETERS___
                 "name": "includeTCFString",
                 "checkboxText": "Include TC String in the requests",
                 "simpleValueType": true,
-                "help": "TCF API must be available to read the TC string",
+                "help": "TCF API must be available to read the TC string. Note that when the primary consent is set to Custom or Default, select the TCF checkbox to use the TCF consent stored in Zeotap in the cookie sync feature.",
                 "enablingConditions": [
                   {
                     "paramName": "consent_method",
@@ -366,7 +367,7 @@ ___TEMPLATE_PARAMETERS___
                     ]
                   }
                 ],
-                "help": "Brand consent can be sent with any consent method"
+                "help": "Send custom brand consent specific to your brand using any consent method."
               }
             ]
           }
@@ -441,7 +442,8 @@ ___TEMPLATE_PARAMETERS___
                 "valueHint": "eg. set_id",
                 "isUnique": true
               }
-            ]
+            ],
+            "help": "Events defined here would be ignored and not trigger any calls"
           },
           {
             "type": "PARAM_TABLE",
