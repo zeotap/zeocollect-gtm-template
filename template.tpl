@@ -1544,7 +1544,12 @@ function callSDKForEvent(eventData) {
     } 
     else if(eventData[eventNameKey] == data.brandConsentMethod) {
         const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue');
-       callInWindow('zeotap.setConsent', brandConsentList);
+      
+       if(!!zeotapSetConsent) {
+        callInWindow('zeotap.setConsent', brandConsentList);
+      } else {
+        callInWindow('zeotap._qcmp.push', ['setConsent', brandConsentList]);
+      }
     }
     else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList,       eventData[eventNameKey])) {
       log('regex matched with event name');
