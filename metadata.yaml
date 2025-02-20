@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: c2bece919e8e8ea3c0f63ae96a2bd9cc1a0c844d
+    changeNotes: support _qcmp push for brand consent
   - sha: 79175f7499b633a832700577ffea3994f15d8b77
     changeNotes: brandConsent, includeTCFString support and better field grouping
   - sha: 7d5bfbed9a431bb9c6be4f1f266276c82e396f67
