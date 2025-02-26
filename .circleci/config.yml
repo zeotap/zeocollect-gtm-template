@@ -17,14 +17,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Extract PR Number
+          name: Check for PR or master
           command: |
-            if [[ $CIRCLE_PULL_REQUEST ]]; then
-              PR_NUMBER=$(echo $CIRCLE_PULL_REQUEST | rev | cut -d'/' -f1 | rev)
-              echo "export PR_NUMBER=$PR_NUMBER" >> $BASH_ENV
-            else
-              echo "Not a PR build"
-              exit 1
+            if [ -z "$CIRCLE_PULL_REQUEST" ]; then
+              if [ "$CIRCLE_BRANCH" != "master" ]; then
+                echo "Not a PR or master, halting"
+                circleci step halt
+              fi
             fi
 
       - run:
@@ -181,7 +180,7 @@ jobs:
                     "type": "header",
                     "text": {
                       "type": "plain_text",
-                      "text": "Job Successful :green_circle:",
+                      "text": "Job Successful :white_check_mark:",
                       "emoji": true
                     }
                   },
@@ -251,7 +250,3 @@ workflows:
           context: 
             - Q3-2020 
             - slack-secrets 
-          filters:
-            branches:
-              only: 
-                /^(master|ZI-13545/cloud-defence-scan)$/
