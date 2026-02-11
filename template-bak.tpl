@@ -1,4 +1,4 @@
-﻿___TERMS_OF_SERVICE___
+___TERMS_OF_SERVICE___
 
 By creating or modifying this file you agree to Google Tag Manager's Community
 Template Gallery Developer Terms of Service available at
@@ -370,23 +370,6 @@ ___TEMPLATE_PARAMETERS___
                 "help": "Send custom brand consent specific to your brand using any consent method."
               }
             ]
-          }
-        ]
-      },
-      {
-        "type": "GROUP",
-        "name": "Interact Integration",
-        "displayName": "Interact",
-        "groupStyle": "NO_ZIPPY",
-        "subParams": [
-          {
-            "type": "CHECKBOX",
-            "name": "loadInteractScript",
-            "checkboxText": "Enable Interact",
-            "simpleValueType": true,
-            "alwaysInSummary": true,
-            "clearOnCopy": true,
-            "displayName": "Enable Interact"
           }
         ]
       }
@@ -1440,7 +1423,6 @@ function mergeObjects(obj1, obj2) {
 }
 
 
-
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
 
@@ -1564,7 +1546,7 @@ function callSDKForEvent(eventData) {
         const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue');
       
        if(!!zeotapSetConsent) {
-        callInWindow('zeotap.setConsent',brandConsentList);
+        callInWindow('zeotap.setConsent', brandConsentList);
       } else {
         callInWindow('zeotap._qcmp.push', ['setConsent', brandConsentList]);
       }
@@ -1620,8 +1602,7 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
     enableID5: data.enableID5,
     id5PartnerId: data.id5PartnerId,
     sendPartnerDataToID5: data.sendPartnerDataToID5,
-    includeTCFString: data.includeTCFString,
-    loadInteractScript: data.loadInteractScript
+    includeTCFString: data.includeTCFString
   };
   
   setInWindow("zeotap", { _q: [], _qcmp: [] });
@@ -2337,17 +2318,6 @@ scenarios:
     assertApi('copyFromWindow').wasCalledWith('dataLayer');
     assertApi('logToConsole').wasCalledWith("regex matched with event name");
 
-- name: should configure the sdk to load interact script when interact is enabled
-  code: |-
-    const mockData ={"writeKey":"someKey","gtmTagId":2147483646,"gtmEventId":1,"loadInteractScript":true,"eventsList":[{"name":"addToCart"}]};
-
-    mock('copyFromWindow',[{event:'test',zeoEvent:'zeoTest',email:'abc@xyz.com',cellno:'10'}]);
-
-    // Call runCode to run the template's code.
-    runCode(mockData);
-
-    assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
-    assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{"loadInteractScript":true});
 setup: ''
 
 
