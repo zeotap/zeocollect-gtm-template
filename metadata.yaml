@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 38df7452cf0e6341c419353ff82f97b6dda5e321
+    changeNotes: Added loadInteractScript option to support enablement of interact via GTM template.
   - sha: c2bece919e8e8ea3c0f63ae96a2bd9cc1a0c844d
     changeNotes: support _qcmp push for brand consent
   - sha: 79175f7499b633a832700577ffea3994f15d8b77
