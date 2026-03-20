@@ -1425,6 +1425,7 @@ const makeTableMap = require('makeTableMap');
 const getType = require("getType");
 const copyFromDataLayer = require("copyFromDataLayer");
 const Object = require('Object');
+var allowedConsentKeyInPayload = {}; //using object for easy lookup
 
 function isNamePresentIn(array, searchKey) {
   return array.some((item) => item.name === searchKey);
@@ -1479,248 +1480,299 @@ function mergeObjects(obj1, obj2) {
   return mergedObject;
 }
 
-function getAllowedConsentKeyInPayload(){
-  var allowedConsentKeyInPayload = {};
-  const ccpTable = makeTableMap(data.ccpTable,'cpID', 'consentKey');
+function makeAllowedConsentKeyInPayload(ccpTable){
   for(var id in ccpTable) {
     allowedConsentKeyInPayload[ccpTable[id]] = true;
   }
-  return allowedConsentKeyInPayload;
 }
+
 
 function extractCcpPayload(eventData) {
   var ccpPayload = {};
-  const allowedConsentKeyInPayload = getAllowedConsentKeyInPayload();
-  log('rkextract', eventData, allowedConsentKeyInPayload);
   for (var key in eventData) {
     if (allowedConsentKeyInPayload[key]) {
       ccpPayload[key] = eventData[key];
     }
   }
-
   return ccpPayload;
 }
-
-
 
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
 const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
 
 var dataLayer = copyFromWindow('dataLayer') || [];
 
-function callSDKForEvent(eventData) {
-
-  const eventNameKey = data.eventKey || 'event';
-  if (eventData && eventData[eventNameKey]) {
-    const regex = data.name_pattern;
-    const eventList = data.eventsList || [];
-    const pageViewEventName = data.pageViewName || 'gtm.js';
-    const eventPropertiesList = data.eventProperties || [];
-    const extraProperties = makeTableMap(eventPropertiesList, 'property_name', 'property_value');
-    const listOfPIIS = data.excludePII || [];
-    const data_wo_pii = removePIIs(listOfPIIS, eventData);
-
-    // parse the dataLayer and log the event that took place
-    log('Tag fired for Event:', eventData[eventNameKey], eventData);
-    // now check the regex to see if it matches with the regex
-
-    if (eventData[eventNameKey] == pageViewEventName) {
-      log('pageview event');
-      //assuming setPageProperties( ...args) 
-      callInWindow('zeotap.callMethod', 'setPageProperties', data_wo_pii);
-    } else if (eventData[eventNameKey] == data.login_event) {
-      log('user logged in');
-      const propertiesList = data.user_attributes || [];
-      const userProperties = getUserpropertiesFromData(eventData, propertiesList);
-      // call the setUserProperties
-      if (!isEmptyObject(userProperties)) {
-        callInWindow('zeotap.callMethod', 'setUserProperties', userProperties);
-      }
-      
-      // collect the pii values
-      const identities = {};
-      
-      //setting custom identities
-      if(data.customIdentities) {
-        for(let id of data.customIdentities) {
-          if(id.key && id.value)
-          identities[id.key] = id.value;
-        }
-      }
-      
-      if (data.areIdentitiesHashed) {
-        if (data.hashed_email_exists) {
-          for (let i=0;i< data.hashed_email_table.length;i++) {
-            const hashKey = 'email_' + data.hashed_email_table[i].hashAlgorithm;
-            identities[hashKey] = data.hashed_email_table[i].hashedEmail;
-          }
-        }
-        if (data.hashed_cellno_exists) {
-          for (let i=0;i< data.hashed_cellno_table.length;i++) {
-            const hashKey = 'cellno_with_country_code_' + data.hashed_cellno_table[i].hashAlgorithm;
-            identities[hashKey] = data.hashed_cellno_table[i].hashedCellno;
-          }
-        }
-        if (data.hashed_cellno_without_cc_exists) {
-          for (let i=0;i< data.hashed_cellno_without_cc_table.length;i++) {
-            const hashKey = 'cellno_without_country_code_' + data.hashed_cellno_without_cc_table[i].hashAlgorithm;
-            identities[hashKey] = data.hashed_cellno_without_cc_table[i].hashedCellno;
-          }
-        }
-         if (data.hashed_cellno_e164_exists) {
-          for (let i=0;i< data.hashed_cellno_e164_table.length;i++) {
-            const hashKey = 'cellno_e164_' + data.hashed_cellno_e164_table[i].hashAlgorithm;
-            identities[hashKey] = data.hashed_cellno_e164_table[i].hashedCellno;
-          }
-        }
-        if (data.hashed_loginid_exists) {
-          for (let i=0;i< data.hashed_loginid_table.length;i++) {
-            const hashKey = 'loginid_' + data.hashed_loginid_table[i].hashAlgorithm;
-            identities[hashKey] = data.hashed_loginid_table[i].hashedLoginid;
-          }
-        }
-      } else {
-        if (data.email_exists) {
-          identities.email = data.email;
-        }
-        if (data.loginid_exists) {
-          identities.loginid = data.loginid;
-        }
-        if (data.cellno_without_cc_exists) {
-          identities.cellno = data.cellno;
-        }
-        if (data.cellno_exists) {
-          if (data.country_code && data.cellno) {
-            identities.cellno = data.country_code + " " + data.cellno;
-          } else {
-            identities.cellno_cc = data.cellno;
-          }
-        }
-      }
-      
-      log('setUserIdentities getting invoked');
-      callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
-      callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], {});
-
-    } else if (eventData[eventNameKey] == data.customConsentMethod) {
-      const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue') || {};
-      const primaryConsent = { 
-            track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
-            identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
-            cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync ==='true')};
-        
-        const consentParams = mergeObjects(primaryConsent, brandConsentList);
-      
-        const finalConsentPayload = mergeObjects(consentParams, extractCcpPayload(eventData));
-      
-      
-      if(!!zeotapSetConsent) {
-        callInWindow('zeotap.setConsent',finalConsentPayload);
-      } else {
-
-        callInWindow('zeotap._qcmp.push', ['setConsent', finalConsentPayload]);
-      }
-    } else if (eventData[eventNameKey] == data.user_logout) {
-      callInWindow('zeotap.callMethod', 'unsetUserIdentities');
-      const propertiesList = data.user_attributes;
-      const userProperties = getUserpropertiesFromData(eventData, propertiesList);
-      callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
-    } 
-    else if(eventData[eventNameKey] == data.brandConsentMethod) {
-        const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue');
-      
-       if(!!zeotapSetConsent) {
-        callInWindow('zeotap.setConsent',brandConsentList);
-      } else {
-        callInWindow('zeotap._qcmp.push', ['setConsent', brandConsentList]);
-      }
-    }
-    else if (matchStringWithRegex(eventData[eventNameKey], regex) || isNamePresentIn(eventList,       eventData[eventNameKey])) {
-      log('regex matched with event name');
-      callInWindow('zeotap.callMethod', 'setEventProperties', eventData[eventNameKey], data_wo_pii, extraProperties);
-    }
-  }
-
+//functions for callSDKForEvent
+function handlePageView(eventData, data_wo_pii) {
+  log('pageview event');
+  callInWindow('zeotap.callMethod', 'setPageProperties', data_wo_pii);
 }
 
-// main execution
-if (!!dataLayer && !!dataLayer.length) {
- let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
-  for (let i = parsedDataLayerLength; i < dataLayer.length ; i++) {
-    const eventData = dataLayer[i];
-    const excludeEventList = data.excludeEvents || [];   
-    const eventNameKey = data.eventKey || 'event';
-    
-if (copyFromWindow('zeotap.callMethod') == undefined) {
-  const consentOptions = {
-    'default': [{ key: 'useConsent', value: false }],
-    'tcf': [{ key: 'useConsent', value: true }, { key: 'checkForCMP', value: true }],
-    'custom': [{ key: 'useConsent', value: true }, { key: 'checkForCMP', value: false }]
-  };
-  const consentMethod = data.consent_method;
-  let gdprPurposeforTrack = [];
-  if(consentMethod === 'tcf') {
-  for(let i = 1; i <= 10; i++) {
-    const prop = 'trackPurpose'+i;
-     if(data[prop]) {
-       gdprPurposeforTrack.push(i);
-     }
+function handleLogin(eventData) {
+  log('user logged in');
+
+  const propertiesList = data.user_attributes || [];
+  const userProperties = getUserpropertiesFromData(eventData, propertiesList);
+
+  if (!isEmptyObject(userProperties)) {
+    callInWindow('zeotap.callMethod', 'setUserProperties', userProperties);
   }
+
+  const identities = {};
+  if(data.customIdentities) {
+    for(let id of data.customIdentities) {
+      if(id.key && id.value)
+        identities[id.key] = id.value;
+    }
   }
-  
-  const ccpMap = data.consent_method === 'custom' ? makeTableMap(data.ccpTable,'cpID', 'consentKey') : {};
-  const options = {
-    user_country: data.user_country,
-    allowIDP: data.allowIDP,
-    partnerId: data.partnerId,
-    useConsent: data.consent_method === 'default' ? false : true,
-    checkForCMP: data.consent_method === 'tcf' ? true : false,
-    purposesForTrack: gdprPurposeforTrack,
-    allowGAClientId: data.allowGAClientId,
-    gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
-    gaUserIdCookieName: data.gaUserIdCookieName,
-    gaUserIdOnlyLoginEvent: data.gaUserIdOnlyLoginEvent,
-    enableLogging: false,
-    areIdentitiesHashed: data.areIdentitiesHashed,
-    hashIdentities: data.hashIdentities,
-    persistenceInCookieStorage: data.persistenceInCookieStorage,
-    enableID5: data.enableID5,
-    id5PartnerId: data.id5PartnerId,
-    sendPartnerDataToID5: data.sendPartnerDataToID5,
-    includeTCFString: data.includeTCFString,
-    loadInteractScript: data.loadInteractScript,
-    partnerConsentKeyMap: ccpMap
+
+  if (data.areIdentitiesHashed) {
+    if (data.hashed_email_exists) {
+      for (let i=0;i< data.hashed_email_table.length;i++) {
+        const hashKey = 'email_' + data.hashed_email_table[i].hashAlgorithm;
+        identities[hashKey] = data.hashed_email_table[i].hashedEmail;
+      }
+    }
+    if (data.hashed_cellno_exists) {
+      for (let i=0;i< data.hashed_cellno_table.length;i++) {
+        const hashKey = 'cellno_with_country_code_' + data.hashed_cellno_table[i].hashAlgorithm;
+        identities[hashKey] = data.hashed_cellno_table[i].hashedCellno;
+      }
+    }
+    if (data.hashed_cellno_without_cc_exists) {
+      for (let i=0;i< data.hashed_cellno_without_cc_table.length;i++) {
+        const hashKey = 'cellno_without_country_code_' + data.hashed_cellno_without_cc_table[i].hashAlgorithm;
+        identities[hashKey] = data.hashed_cellno_without_cc_table[i].hashedCellno;
+      }
+    }
+    if (data.hashed_cellno_e164_exists) {
+      for (let i=0;i< data.hashed_cellno_e164_table.length;i++) {
+        const hashKey = 'cellno_e164_' + data.hashed_cellno_e164_table[i].hashAlgorithm;
+        identities[hashKey] = data.hashed_cellno_e164_table[i].hashedCellno;
+      }
+    }
+    if (data.hashed_loginid_exists) {
+      for (let i=0;i< data.hashed_loginid_table.length;i++) {
+        const hashKey = 'loginid_' + data.hashed_loginid_table[i].hashAlgorithm;
+        identities[hashKey] = data.hashed_loginid_table[i].hashedLoginid;
+      }
+    }
+  } else {
+    if (data.email_exists) identities.email = data.email;
+    if (data.loginid_exists) identities.loginid = data.loginid;
+    if (data.cellno_without_cc_exists) identities.cellno = data.cellno;
+    if (data.cellno_exists) {
+      if (data.country_code && data.cellno) {
+        identities.cellno = data.country_code + " " + data.cellno;
+      } else {
+        identities.cellno_cc = data.cellno;
+      }
+    }
+  }
+
+  log('setUserIdentities getting invoked');
+  callInWindow('zeotap.callMethod', 'setUserIdentities', identities, data.areIdentitiesHashed);
+  callInWindow('zeotap.callMethod', 'setEventProperties', eventData[data.eventKey || 'event'], {});
+}
+
+function handleCustomConsent(eventData) {
+
+  const brandConsentList = makeTableMap(
+    data.brandConsentParams,
+    'brandConsentKey',
+    'brandConsentValue'
+  ) || {};
+
+  const primaryConsent = {
+    track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
+    identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
+    cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
   };
-  
-  setInWindow("zeotap", { _q: [], _qcmp: [] });
-  setInWindow('zeotap.callMethod', function () {
-    callInWindow('zeotap._q.push', arguments);
-  });
-   if (options.useConsent && !options.checkForCMP && eventData && (eventData[eventNameKey] == data.customConsentMethod) && !zeotapSetConsent) {
-       callInWindow(
-          'zeotap._qcmp.push',
-         ['setConsent',
-          { 
+
+  const consentParams = mergeObjects(primaryConsent, brandConsentList);
+
+  const finalConsentPayload = mergeObjects(consentParams, extractCcpPayload(eventData));
+
+  const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
+
+  if(!!zeotapSetConsent) {
+    callInWindow('zeotap.setConsent', finalConsentPayload);
+  } else {
+    callInWindow('zeotap._qcmp.push', ['setConsent', finalConsentPayload]);
+  }
+}
+
+function handleLogout(eventData) {
+  callInWindow('zeotap.callMethod', 'unsetUserIdentities');
+  const propertiesList = data.user_attributes;
+  const userProperties = getUserpropertiesFromData(eventData, propertiesList);
+  callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
+}
+
+function handleBrandConsent() {
+  const brandConsentList = makeTableMap(
+    data.brandConsentParams,
+    'brandConsentKey',
+    'brandConsentValue'
+  );
+
+  const zeotapSetConsent = copyFromWindow('zeotap.setConsent');
+
+  if(!!zeotapSetConsent) {
+    callInWindow('zeotap.setConsent', brandConsentList);
+  } else {
+    callInWindow('zeotap._qcmp.push', ['setConsent', brandConsentList]);
+  }
+}
+
+
+function callSDKForEvent(eventData) {
+  const eventNameKey = data.eventKey || 'event';
+
+  if (eventData && eventData[eventNameKey]) {
+    const eventName = eventData[eventNameKey];
+
+    if (eventName == data.customConsentMethod) {
+      handleCustomConsent(eventData); 
+    }
+  }
+} else if (eventName == data.user_logout) {
+
+      handleLogout(eventData);
+
+    } else if (eventName == data.brandConsentMethod) {
+
+      handleBrandConsent();
+
+    } else if (
+      matchStringWithRegex(eventName, regex) ||
+      isNamePresentIn(eventList, eventName)
+    ) {
+
+      log('regex matched with event name');
+
+      callInWindow(
+        'zeotap.callMethod',
+        'setEventProperties',
+        eventName,
+        data_wo_pii,
+        extraProperties
+      );
+    }
+  }
+}
+
+function initSDK(eventData, eventNameKey) {
+
+  if (copyFromWindow('zeotap.callMethod') == undefined) {
+
+    let gdprPurposeforTrack = [];
+
+    if (data.consent_method === 'tcf') {
+      for (let i = 1; i <= 10; i++) {
+        const prop = 'trackPurpose' + i;
+        if (data[prop]) {
+          gdprPurposeforTrack.push(i);
+        }
+      }
+    }
+
+    const ccpMap = data.consent_method === 'custom' ? makeTableMap(data.ccpTable,'cpID', 'consentKey') : {};
+
+    const options = {
+      user_country: data.user_country,
+      allowIDP: data.allowIDP,
+      partnerId: data.partnerId,
+      useConsent: data.consent_method === 'default' ? false : true,
+      checkForCMP: data.consent_method === 'tcf' ? true : false,
+      purposesForTrack: gdprPurposeforTrack,
+      allowGAClientId: data.allowGAClientId,
+      gaClientIdCookiePrefix: data.gaClientIdCookiePrefix,
+      gaUserIdCookieName: data.gaUserIdCookieName,
+      gaUserIdOnlyLoginEvent: data.gaUserIdOnlyLoginEvent,
+      enableLogging: false,
+      areIdentitiesHashed: data.areIdentitiesHashed,
+      hashIdentities: data.hashIdentities,
+      persistenceInCookieStorage: data.persistenceInCookieStorage,
+      enableID5: data.enableID5,
+      id5PartnerId: data.id5PartnerId,
+      sendPartnerDataToID5: data.sendPartnerDataToID5,
+      includeTCFString: data.includeTCFString,
+      loadInteractScript: data.loadInteractScript,
+      partnerConsentKeyMap: ccpMap
+    };
+
+    setInWindow("zeotap", { _q: [], _qcmp: [] });
+
+    setInWindow('zeotap.callMethod', function () {
+      callInWindow('zeotap._q.push', arguments);
+    });
+
+    if (
+      options.useConsent &&
+      !options.checkForCMP &&
+      eventData &&
+      (eventData[eventNameKey] == data.customConsentMethod) &&
+      !copyFromWindow('zeotap.setConsent')
+    ) {
+      callInWindow(
+        'zeotap._qcmp.push',
+        ['setConsent',
+          {
             track: getType(data.track) === 'boolean' ? data.track : (data.track === 'true'),
             identify: getType(data.identify) === 'boolean' ? data.identify : (data.identify === 'true'),
             cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync === 'true')
-          }]
-        );
+          }
+        ]
+      );
     }
-  
-  callInWindow('zeotap.callMethod', 'init', data.writeKey, options);
-  injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeoCollect');
+
+    callInWindow('zeotap.callMethod', 'init', data.writeKey, options);
+
+    injectScript(url, data.gtmOnSuccess, data.gtmOnFailure, 'zeoCollect');
+  }
 }
 
 
-    if(eventData && eventData[eventNameKey] && excludeEventList.length>0 && matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)) {
-      log('Could not Fire Tag Event as event regex matched exclusion regex');
+function shouldSkipEvent(eventData, eventNameKey) {
+
+  const excludeEventList = data.excludeEvents || [];
+
+  if (
+    eventData &&
+    eventData[eventNameKey] &&
+    excludeEventList.length > 0 &&
+    matchStringWithRegexObjArray(eventData[eventNameKey], excludeEventList)
+  ) {
+    log('Could not Fire Tag Event as event regex matched exclusion regex');
+    return true;
+  }
+
+  return false;
+}
+
+
+//main execution
+if (!!dataLayer && !!dataLayer.length) {
+
+  let parsedDataLayerLength = copyFromWindow('dl_parsed_length') || 0;
+
+  for (let i = parsedDataLayerLength; i < dataLayer.length; i++) {
+
+    const eventData = dataLayer[i];
+    const eventNameKey = data.eventKey || 'event';
+
+    initSDK(eventData, eventNameKey);
+
+    if (shouldSkipEvent(eventData, eventNameKey)) {
       continue;
     }
 
     log('Initiating call to SDK for : ', eventData, i);
+
     callSDKForEvent(eventData);
   }
+
   setInWindow('dl_parsed_length', dataLayer.length, true);
 }
 
