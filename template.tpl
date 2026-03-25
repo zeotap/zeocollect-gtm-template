@@ -370,6 +370,46 @@ ___TEMPLATE_PARAMETERS___
                 "help": "Send custom brand consent specific to your brand using any consent method."
               }
             ]
+          },
+          {
+            "type": "GROUP",
+            "name": "consentBasedCS",
+            "displayName": "Consent Based Cookie Syncing",
+            "groupStyle": "ZIPPY_CLOSED",
+            "subParams": [
+              {
+                "type": "PARAM_TABLE",
+                "name": "ccpTable",
+                "displayName": "",
+                "paramTableColumns": [
+                  {
+                    "param": {
+                      "type": "TEXT",
+                      "name": "cpID",
+                      "displayName": "Channel Partner ID",
+                      "simpleValueType": true
+                    },
+                    "isUnique": true
+                  },
+                  {
+                    "param": {
+                      "type": "TEXT",
+                      "name": "consentKey",
+                      "displayName": "Key",
+                      "simpleValueType": true
+                    },
+                    "isUnique": true
+                  }
+                ]
+              }
+            ],
+            "enablingConditions": [
+              {
+                "paramName": "consent_method",
+                "paramValue": "custom",
+                "type": "EQUALS"
+              }
+            ]
           }
         ]
       },
@@ -1439,6 +1479,28 @@ function mergeObjects(obj1, obj2) {
   return mergedObject;
 }
 
+function getAllowedConsentKeyInPayload(){
+  var allowedConsentKeyInPayload = {};
+  const ccpTable = makeTableMap(data.ccpTable,'cpID', 'consentKey');
+  for(var id in ccpTable) {
+    allowedConsentKeyInPayload[ccpTable[id]] = true;
+  }
+  return allowedConsentKeyInPayload;
+}
+
+function extractCcpPayload(eventData) {
+  var ccpPayload = {};
+  const allowedConsentKeyInPayload = getAllowedConsentKeyInPayload();
+  log('rkextract', eventData, allowedConsentKeyInPayload);
+  for (var key in eventData) {
+    if (allowedConsentKeyInPayload[key]) {
+      ccpPayload[key] = eventData[key];
+    }
+  }
+
+  return ccpPayload;
+}
+
 
 
 const zeotapCallMethod = copyFromWindow('zeotap.callMethod');
@@ -1548,11 +1610,15 @@ function callSDKForEvent(eventData) {
             cookieSync: getType(data.cookieSync) === 'boolean' ? data.cookieSync : (data.cookieSync ==='true')};
         
         const consentParams = mergeObjects(primaryConsent, brandConsentList);
+      
+        const finalConsentPayload = mergeObjects(consentParams, extractCcpPayload(eventData));
+      
+      
       if(!!zeotapSetConsent) {
-        callInWindow('zeotap.setConsent',consentParams);
+        callInWindow('zeotap.setConsent',finalConsentPayload);
       } else {
 
-        callInWindow('zeotap._qcmp.push', ['setConsent', consentParams]);
+        callInWindow('zeotap._qcmp.push', ['setConsent', finalConsentPayload]);
       }
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
@@ -1601,7 +1667,8 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
      }
   }
   }
-
+  
+  const ccpMap = data.consent_method === 'custom' ? makeTableMap(data.ccpTable,'cpID', 'consentKey') : {};
   const options = {
     user_country: data.user_country,
     allowIDP: data.allowIDP,
@@ -1621,7 +1688,8 @@ if (copyFromWindow('zeotap.callMethod') == undefined) {
     id5PartnerId: data.id5PartnerId,
     sendPartnerDataToID5: data.sendPartnerDataToID5,
     includeTCFString: data.includeTCFString,
-    loadInteractScript: data.loadInteractScript
+    loadInteractScript: data.loadInteractScript,
+    partnerConsentKeyMap: ccpMap
   };
   
   setInWindow("zeotap", { _q: [], _qcmp: [] });
