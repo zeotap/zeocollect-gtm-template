@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 9d60f1ba81c9bc0c0072160ef972b35631187f37
+    changeNotes: Added configuration for cookiesync support based on custom granular channel consent.
   - sha: 38df7452cf0e6341c419353ff82f97b6dda5e321
     changeNotes: Added loadInteractScript option to support enablement of interact via GTM template.
   - sha: c2bece919e8e8ea3c0f63ae96a2bd9cc1a0c844d
