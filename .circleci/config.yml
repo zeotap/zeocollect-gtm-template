@@ -1,0 +1,252 @@
+version: 2.1
+
+orbs:
+  slack: circleci/slack@5.1.1
+
+env: &env_vars
+  REPO_URL: << pipeline.project.git_url >>
+#   PR_NUMBER: << pipeline.number >>
+
+jobs:
+
+  pre-build:
+    docker:
+      - image: cimg/base:stable
+    environment:
+      <<: *env_vars
+    steps:
+      - checkout
+      - run:
+          name: Check for PR or master
+          command: |
+            if [ -z "$CIRCLE_PULL_REQUEST" ]; then
+              if [ "$CIRCLE_BRANCH" != "master" ]; then
+                echo "Not a PR or master, halting"
+                circleci step halt
+              fi
+            fi
+
+      - run:
+          name: Install Cloud Defense CLI
+          command: |     
+            sudo curl -L https://raw.githubusercontent.com/CloudDefenseAI/cd/master/latest/cd-latest-linux-x64.tar.gz -o /tmp/cd-latest-linux-x64.tar.gz
+            sudo tar -C /usr/local/bin -xzf /tmp/cd-latest-linux-x64.tar.gz
+            sudo chmod +x /usr/local/bin/cdefense
+            echo ${CIRCLE_PULL_REQUEST}
+
+      - run:
+          name: Scan Code for Vulnerabilities
+          no_output_timeout: 30m
+          command: |
+            cdefense online  \
+              --api-key="${CLOUD_DEFENSE_API_KEY}" \
+              --repository-url="${REPO_URL}" 
+            BUILD_NUM=${CIRCLE_BUILD_NUM}
+            API_URL="https://circleci.com/api/v1.1/project/github/zeotap/zeocollect-gtm-template/${BUILD_NUM}"
+            echo "Extracting scan output URL for build: ${BUILD_NUM}"        
+            OUTPUT_URL=$(curl -s -H "Circle-Token: ${CIRCLE_TOKEN}" "$API_URL" | \
+                jq -r '.steps[] | 
+                select(.name == "Scan Code for Vulnerabilities") | 
+                .actions[0].output_url')
+            
+            if [ -z "$OUTPUT_URL" ]; then
+                echo "Error: Could not find output URL for Scan Code for Vulnerabilities step"
+                exit 1
+            fi
+            
+            echo "Scan Output URL:"
+            echo "${OUTPUT_URL}"
+            
+            echo "Scan Output Content:"
+            curl -H "Circle-Token: ${CIRCLE_TOKEN}" "${OUTPUT_URL}"
+
+      - run:
+          name: "Extract Scan URL, format and store output logs"
+          command: |
+            BUILD_NUM=${CIRCLE_BUILD_NUM}
+            API_URL="https://circleci.com/api/v1.1/project/github/zeotap/zeocollect-gtm-template/${BUILD_NUM}"
+            
+            echo "Extracting scan output URL for build: ${BUILD_NUM}"
+          
+            OUTPUT_URL=$(curl -s -H "Circle-Token: ${CIRCLE_TOKEN}" "$API_URL" | \
+                jq -r '.steps[] | 
+                select(.name == "Scan Code for Vulnerabilities") | 
+                .actions[0].output_url' || true)
+            
+            if [ -z "$OUTPUT_URL" ]; then
+                echo "Error: Could not find output URL for Scan Code for Vulnerabilities step"          
+                OUTPUT_URL="No URL found"
+            fi           
+            echo "Scan Output URL:"
+            echo "${OUTPUT_URL}"
+            echo "Scan Output Content:"
+            curl -H "Circle-Token: ${CIRCLE_TOKEN}" "${OUTPUT_URL}" || true
+            SCAN_OUTPUT=$(curl -H "Circle-Token: ${CIRCLE_TOKEN}" "${OUTPUT_URL}" || true)          
+            FORMATTED_SCAN_OUTPUT=$(echo "$SCAN_OUTPUT" | jq -r '.[] | .message' | sed \
+              -e 's/\\r//g' \
+              -e 's/\\n/\n/g' \
+              -e 's/\[INFO\]//g' \
+              -e 's/\[ERROR\]//g' \
+              -e 's/\[.*\]//g')
+            SCAN_SUMMARY=$(echo "$FORMATTED_SCAN_OUTPUT" | grep -E "Build policy status|Failed build policy results|Vulnerability counts" -A 10)
+            FINAL_SCAN_OUTPUT=$(echo -e "$SCAN_SUMMARY" | awk '{$1=$1};1')
+            ESCAPED_SCAN_OUTPUT=$(echo "$FINAL_SCAN_OUTPUT" | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+            echo "SCAN_OUTPUT=\"$ESCAPED_SCAN_OUTPUT\"" >> $BASH_ENV
+          when: always  
+          no_output_timeout: 30m  
+
+      - slack/notify:
+          # channel: zt-infra-alerts
+          event: fail
+          custom: |
+              {
+                "text": "*CircleCI job failed*",
+                "blocks": [
+                  {
+                    "type": "header",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Job Failed :red_circle:",
+                      "emoji": true
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*SCAN Report:*"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "${SCAN_OUTPUT//\\n/\n}"
+                    
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Job*: ${CIRCLE_JOB}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Project*: <https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME%7C$CIRCLE_PROJECT_REPONAME>"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Author*: <https://github.com/$CIRCLE_USERNAME%7C$CIRCLE_USERNAME>"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Branch*: <https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH%7C$CIRCLE_BRANCH>"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*Commit*: <https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/commit/$CIRCLE_SHA1%7C$CIRCLE_SHA1>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*PR*: <$CIRCLE_PULL_REQUEST|$CIRCLE_PULL_REQUEST>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "<$CIRCLE_BUILD_URL|View Job>"
+                    }
+                  }
+                ]
+              }
+
+      - slack/notify:
+          # channel: zt-infra-alerts
+          event: pass
+          custom: |
+              {
+                "text": "*CircleCI job passed*",
+                "blocks": [
+                  {
+                    "type": "header",
+                    "text": {
+                      "type": "plain_text",
+                      "text": "Job Successful :white_check_mark:",
+                      "emoji": true
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*SCAN Report:*"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "${SCAN_OUTPUT//\\n/\n}"
+                    
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Job*: ${CIRCLE_JOB}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "section",
+                    "fields": [
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Project*: <https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME%7C$CIRCLE_PROJECT_REPONAME>"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Author*: <https://github.com/$CIRCLE_USERNAME%7C$CIRCLE_USERNAME>"
+                      },
+                      {
+                        "type": "mrkdwn",
+                        "text": "*Branch*: <https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/tree/$CIRCLE_BRANCH%7C$CIRCLE_BRANCH>"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*Commit*: <https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/commit/$CIRCLE_SHA1%7C$CIRCLE_SHA1>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "*PR*: <$CIRCLE_PULL_REQUEST|$CIRCLE_PULL_REQUEST>"
+                    }
+                  },
+                  {
+                    "type": "section",
+                    "text": {
+                      "type": "mrkdwn",
+                      "text": "<$CIRCLE_BUILD_URL|View Job>"
+                    }
+                  }
+                ]
+              }  
+              
+workflows:
+  security-scan:
+    jobs:
+      - pre-build:
+          context: 
+            - Q3-2020 
+            - slack-secrets 
