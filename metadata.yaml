@@ -15,6 +15,8 @@
 homepage: "https://github.com/zeotap/zeocollect-gtm-template"
 documentation: "https://github.com/zeotap/zeocollect-gtm-template"
 versions:
+  - sha: 2152a1c958e1557f89f237365d0d37ed7fff7bdd
+    changeNotes: Added option to reset the Zeotap first-party cookie (ZI) on logout.
   - sha: 9d60f1ba81c9bc0c0072160ef972b35631187f37
     changeNotes: Added configuration for cookiesync support based on custom granular channel consent.
   - sha: 38df7452cf0e6341c419353ff82f97b6dda5e321
