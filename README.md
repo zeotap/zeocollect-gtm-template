@@ -19,3 +19,8 @@ The tag will contain 3 sections: Initialisation Options, Track page views and ev
 - **Pre Defined Properties:** Input the properties you'd like to attach or override. You can define the values from your variables or provide static values for them.
 - **PII to be excluded:** Enter all the PII and user related fields in the dataLayer that need to be excluded in event properties. For eg: If email is pushed into datalayer in the raw form.
 
+
+## Login and identities setting
+
+- **User Logout:** The dataLayer event name that signals a user logout. When it fires, the user identities are cleared (`unsetUserIdentities`) and the logout event is sent.
+- **Reset Zeotap first-party cookie (ZI) on logout:** Optional, off by default. When selected, the browser gets a new Zeotap ID (ZI) right after the logout event is sent (`resetZI`). Activity after logout, including the next user on a shared device, is then not merged into the logged-out user's profile. The logout event itself is still sent with the previous ZI. The reset applies only when the user has given consent to track.

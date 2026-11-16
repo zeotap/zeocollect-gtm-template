@@ -1302,6 +1302,21 @@ ___TEMPLATE_PARAMETERS___
         ]
       },
       {
+        "type": "CHECKBOX",
+        "name": "resetZIOnLogout",
+        "checkboxText": "Reset Zeotap first-party cookie (ZI) on logout",
+        "simpleValueType": true,
+        "defaultValue": false,
+        "help": "Select the checkbox to give the browser a new Zeotap ID (ZI) when the logout event fires, so that activity after logout, or by the next user on a shared device, is not merged into the logged-out user's profile. The logout event itself is still sent with the previous ZI. The reset applies only when the user has given consent to track.",
+        "enablingConditions": [
+          {
+            "paramName": "user_logout",
+            "paramValue": "",
+            "type": "PRESENT"
+          }
+        ]
+      },
+      {
         "type": "SIMPLE_TABLE",
         "name": "user_attributes",
         "displayName": "User Attributes",
@@ -1625,7 +1640,11 @@ function callSDKForEvent(eventData) {
       const propertiesList = data.user_attributes;
       const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
-    } 
+      if (data.resetZIOnLogout) {
+        // after the logout event is queued (it keeps the old ZI), switch the browser to a new anonymous ZI
+        callInWindow('zeotap.callMethod', 'resetZI');
+      }
+    }
     else if(eventData[eventNameKey] == data.brandConsentMethod) {
         const brandConsentList = makeTableMap(data.brandConsentParams, 'brandConsentKey', 'brandConsentValue');
       
@@ -2416,6 +2435,54 @@ scenarios:
 
     assertApi('setInWindow').wasCalledWith("zeotap", { _q:[],_qcmp:[]});
     assertApi('callInWindow').wasCalledWith('zeotap.callMethod','init',mockData.writeKey,{"loadInteractScript":true});
+- name: should reset ZI after the logout event when resetZIOnLogout is enabled
+  code: |-
+    const mockData = {"writeKey":"someKey","consent_method":"default","login_event":"login","user_logout":"logout","resetZIOnLogout":true,"user_attributes":[{"name":"age"}],"name_pattern":".*","gtmTagId":2147483646,"gtmEventId":1};
+    const sdkCalls = [];
+    mock('copyFromWindow', (key) => {
+      if (key === 'dataLayer') return [{event:'logout'}];
+      if (key === 'zeotap.callMethod') return true; // SDK already initialised on this page
+      return undefined;
+    });
+    mock('callInWindow', (path, method) => {
+      if (path === 'zeotap.callMethod') sdkCalls.push(method);
+    });
+
+    runCode(mockData);
+
+    // the logout event is queued with the old ZI; only then is the ZI replaced
+    assertThat(sdkCalls).isEqualTo(['unsetUserIdentities', 'setEventProperties', 'resetZI']);
+- name: should not reset ZI on logout when resetZIOnLogout is not set
+  code: |-
+    const mockData = {"writeKey":"someKey","consent_method":"default","login_event":"login","user_logout":"logout","user_attributes":[{"name":"age"}],"name_pattern":".*","gtmTagId":2147483646,"gtmEventId":1};
+    const sdkCalls = [];
+    mock('copyFromWindow', (key) => {
+      if (key === 'dataLayer') return [{event:'logout'}];
+      if (key === 'zeotap.callMethod') return true;
+      return undefined;
+    });
+    mock('callInWindow', (path, method) => {
+      if (path === 'zeotap.callMethod') sdkCalls.push(method);
+    });
+
+    runCode(mockData);
+
+    // existing tags (field absent) keep today's behaviour
+    assertThat(sdkCalls).isEqualTo(['unsetUserIdentities', 'setEventProperties']);
+    assertApi('callInWindow').wasNotCalledWith('zeotap.callMethod', 'resetZI');
+- name: should not reset ZI on other events when resetZIOnLogout is enabled
+  code: |-
+    const mockData = {"writeKey":"someKey","consent_method":"default","login_event":"login","user_logout":"logout","resetZIOnLogout":true,"user_attributes":[{"name":"age"}],"eventsList":[{"name":"addToCart"}],"name_pattern":".*","gtmTagId":2147483646,"gtmEventId":1};
+    mock('copyFromWindow', (key) => {
+      if (key === 'dataLayer') return [{event:'addToCart'}];
+      if (key === 'zeotap.callMethod') return true;
+      return undefined;
+    });
+
+    runCode(mockData);
+
+    assertApi('callInWindow').wasCalledWith('zeotap.callMethod', 'setEventProperties', 'addToCart', {event:'addToCart'}, {});
+    assertApi('callInWindow').wasNotCalledWith('zeotap.callMethod', 'resetZI');
 setup: ''
 
 
