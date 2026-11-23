@@ -1637,8 +1637,6 @@ function callSDKForEvent(eventData) {
       }
     } else if (eventData[eventNameKey] == data.user_logout) {
       callInWindow('zeotap.callMethod', 'unsetUserIdentities');
-      const propertiesList = data.user_attributes;
-      const userProperties = getUserpropertiesFromData(eventData, propertiesList);
       callInWindow('zeotap.callMethod', 'setEventProperties', data.user_logout, {});
       if (data.resetZIOnLogout) {
         // after the logout event is queued (it keeps the old ZI), switch the browser to a new anonymous ZI
